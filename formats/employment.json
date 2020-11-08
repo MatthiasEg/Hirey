@@ -1,0 +1,10 @@
+{
+  "type": "anstellung",
+  "title": "bla",
+  "description": "bla",
+  "autor": "bla",
+  "from": "bla",
+  "to": "bla",
+  "publishDate": "bla",
+  "documents": ["serialized documents here", "more documents"]
+}
