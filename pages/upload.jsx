@@ -1,17 +1,15 @@
 import React, { useState } from 'react'
 import Box from '@material-ui/core/Box'
-
+import Typography from '@material-ui/core/Typography'
 import ipfs from '../lib/IPFSClient'
 import { useAccount } from '../context/AccountProvider'
-import { Typography } from '@material-ui/core'
 
 const Upload = () => {
   const [buffer, setBuffer] = useState(null)
+  // eslint-disable-next-line no-unused-vars
   const [hash, setHash] = useState('')
   const { account, contract } = useAccount()
   const [uploadSuccessful, setUploadSuccessful] = useState(false)
-
-  let result = <></>
 
   const captureFile = (event) => {
     event.preventDefault()
@@ -36,7 +34,7 @@ const Upload = () => {
           .send({
             from: account,
           })
-          .then((res) => {
+          .then(() => {
             setUploadSuccessful(true)
           })
       })

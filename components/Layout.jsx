@@ -8,7 +8,7 @@ import Drawer from '@material-ui/core/Drawer'
 import { makeStyles } from '@material-ui/core/styles'
 import List from '@material-ui/core/List'
 import DashboardIcon from '@material-ui/icons/Dashboard'
-import CloudDownloadIcon from '@material-ui/icons/CloudDownload';
+import CloudDownloadIcon from '@material-ui/icons/CloudDownload'
 import HomeIcon from '@material-ui/icons/Home'
 import ListItem from '@material-ui/core/ListItem'
 import ListItemIcon from '@material-ui/core/ListItemIcon'

@@ -11,13 +11,12 @@ const Load = () => {
   const { contract } = useAccount()
   const [hash, setHash] = useState('')
   const [numberOfPages, setNumberOfPages] = useState(null)
+  // eslint-disable-next-line no-unused-vars
   const [pageNumber, setPageNumber] = useState(1)
 
   const loadHash = async () => {
-    console.log(contract)
     if (contract) {
       const uploadedDocumentHash = await contract.methods.get().call()
-      console.log(uploadedDocumentHash)
       setHash(uploadedDocumentHash)
     }
   }
