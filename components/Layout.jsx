@@ -2,6 +2,7 @@
 import { AppBar, Toolbar, Grid } from '@material-ui/core'
 import React, { useState } from 'react'
 import IconButton from '@material-ui/core/IconButton'
+import Typography from '@material-ui/core/Typography'
 import MenuIcon from '@material-ui/icons/Menu'
 import Drawer from '@material-ui/core/Drawer'
 import { makeStyles } from '@material-ui/core/styles'
@@ -14,6 +15,7 @@ import ListItemText from '@material-ui/core/ListItemText'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter } from 'next/router'
+import { useAccount } from '../context/AccountProvider'
 
 const useStyles = makeStyles(() => ({
   homePageLink: {
@@ -42,12 +44,22 @@ const useStyles = makeStyles(() => ({
   fullList: {
     width: 'auto',
   },
+  bottomPush: {
+    position: 'fixed',
+    bottom: 0,
+    textAlign: 'center',
+    paddingBottom: 10,
+  },
+  accountText: {
+    fontSize: '0.5em',
+  },
 }))
 
 const Layout = ({ children }) => {
   const classes = useStyles()
   const [drawerOpen, setDrawerOpen] = useState(false)
   const router = useRouter()
+  const { account } = useAccount()
 
   const toggleDrawer = (open) => (event) => {
     if (
@@ -67,8 +79,8 @@ const Layout = ({ children }) => {
       <AppBar position='static' color='primary'>
         <Toolbar>
           <div className={classes.root}>
-            <Grid>
-              <Grid container alignItems='center' justify='space-between'>
+            <Grid container alignItems='center'>
+              <Grid item>
                 <IconButton
                   edge='start'
                   className={classes.menuButton}
@@ -78,6 +90,8 @@ const Layout = ({ children }) => {
                 >
                   <MenuIcon />
                 </IconButton>
+              </Grid>
+              <Grid item>
                 <Drawer open={drawerOpen} onClose={toggleDrawer(false)}>
                   <div
                     className={classes.list}
@@ -102,9 +116,32 @@ const Layout = ({ children }) => {
                           <ListItemText primary='Upload' />
                         </ListItem>
                       </Link>
+                      <div className={classes.bottomPush}>
+                        {account ? (
+                          <>
+                            <ListItem>
+                              <Typography variant='body2'>
+                                You are logged in with account:
+                              </Typography>
+                            </ListItem>
+                            <ListItem>
+                              <Typography
+                                variant='caption'
+                                className={classes.accountText}
+                              >
+                                {account}
+                              </Typography>
+                            </ListItem>
+                          </>
+                        ) : (
+                          <></>
+                        )}
+                      </div>
                     </List>
                   </div>
                 </Drawer>
+              </Grid>
+              <Grid item>
                 <Image
                   src='/logo_dark.png'
                   alt='logo'

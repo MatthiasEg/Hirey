@@ -6,6 +6,7 @@ import Container from '@material-ui/core/Container'
 import CssBaseline from '@material-ui/core/CssBaseline'
 import theme from '../style/theme'
 import Layout from '../components/Layout'
+import AccountProvider from '../context/AccountProvider'
 
 export default function MyApp(props) {
   const { Component, pageProps } = props
@@ -29,11 +30,13 @@ export default function MyApp(props) {
       </Head>
       <ThemeProvider theme={theme}>
         <CssBaseline />
-        <Layout>
-          <Container maxWidth='md' fixed>
-            <Component {...pageProps} />
-          </Container>
-        </Layout>
+        <AccountProvider>
+          <Layout>
+            <Container maxWidth='md' fixed>
+              <Component {...pageProps} />
+            </Container>
+          </Layout>
+        </AccountProvider>
       </ThemeProvider>
     </>
   )
