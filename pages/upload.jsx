@@ -1,14 +1,17 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import Box from '@material-ui/core/Box'
 
-import { Typography } from '@material-ui/core'
 import ipfs from '../lib/IPFSClient'
 import { useAccount } from '../context/AccountProvider'
+import { Typography } from '@material-ui/core'
 
 const Upload = () => {
   const [buffer, setBuffer] = useState(null)
-  const [lastUploadedDocumentHash, setLastUploadedDocumentHash] = useState('')
+  const [hash, setHash] = useState('')
   const { account, contract } = useAccount()
+  const [uploadSuccessful, setUploadSuccessful] = useState(false)
+
+  let result = <></>
 
   const captureFile = (event) => {
     event.preventDefault()
@@ -21,23 +24,20 @@ const Upload = () => {
     }
   }
 
-  // const uploadedDocumentHash = await newContract.methods.get().call()
-  // setLastUploadedDocumentHash(uploadedDocumentHash)
-
   // Example hash: QmSAdbek1DDb91BM8no29LeRxapusH72pmMZWs8zokGt6p
   // Example url: https://ipfs.infura.io/ipfs/QmSAdbek1DDb91BM8no29LeRxapusH72pmMZWs8zokGt6p
   const onSubmit = (event) => {
     event.preventDefault()
     if (buffer) {
       ipfs.add(buffer).then((response) => {
-        setLastUploadedDocumentHash(response.path)
+        setHash(response.path)
         contract.methods
-          .set(lastUploadedDocumentHash)
+          .set(response.path)
           .send({
             from: account,
           })
-          .then((response) => {
-            setLastUploadedDocumentHash(lastUploadedDocumentHash)
+          .then((res) => {
+            setUploadSuccessful(true)
           })
       })
     }
@@ -50,19 +50,8 @@ const Upload = () => {
         <input type='file' onChange={captureFile} />
         <input type='submit' />
       </form>
-      {lastUploadedDocumentHash ? (
-        <a href={`https://ipfs.infura.io/ipfs/${lastUploadedDocumentHash}`}>
-          Link to last uploaded file
-        </a>
-      ) : (
-        <></>
-      )}
-      <br />
-      {account ? (
-        <>
-          <Typography>Connected account:</Typography>
-          <Typography>{account}</Typography>
-        </>
+      {uploadSuccessful ? (
+        <Typography>Upload was successful!</Typography>
       ) : (
         <></>
       )}
