@@ -2,7 +2,7 @@
 // eslint-disable-next-line no-unused-vars
 import Web3 from 'web3'
 import React, { useContext, useEffect, createContext, useState } from 'react'
-import HireyStore from '../build/Document.json'
+import HireyStore from '../build/HireyStore.json'
 import { useUser } from './UserProvider'
 
 const ContractContext = createContext(null)
