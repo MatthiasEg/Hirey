@@ -6,9 +6,10 @@ import Container from '@material-ui/core/Container'
 import CssBaseline from '@material-ui/core/CssBaseline'
 import theme from '../style/theme'
 import Layout from '../components/Layout'
-import AccountProvider from '../context/AccountProvider'
+import UserProvider from '../context/UserProvider'
+import ContractProvider from '../context/ContractProvider'
 
-export default function MyApp(props) {
+export default function Hirey(props) {
   const { Component, pageProps } = props
 
   React.useEffect(() => {
@@ -30,19 +31,21 @@ export default function MyApp(props) {
       </Head>
       <ThemeProvider theme={theme}>
         <CssBaseline />
-        <AccountProvider>
-          <Layout>
-            <Container maxWidth='md' fixed>
-              <Component {...pageProps} />
-            </Container>
-          </Layout>
-        </AccountProvider>
+        <UserProvider>
+          <ContractProvider>
+            <Layout>
+              <Container maxWidth='md' fixed>
+                <Component {...pageProps} />
+              </Container>
+            </Layout>
+          </ContractProvider>
+        </UserProvider>
       </ThemeProvider>
     </>
   )
 }
 
-MyApp.propTypes = {
+Hirey.propTypes = {
   Component: PropTypes.elementType.isRequired,
   // eslint-disable-next-line react/forbid-prop-types
   pageProps: PropTypes.object.isRequired,

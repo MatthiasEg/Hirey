@@ -1,5 +1,5 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
-import { AppBar, Toolbar, Grid } from '@material-ui/core'
+import { AppBar, Toolbar, Grid, Box } from '@material-ui/core'
 import React, { useState } from 'react'
 import IconButton from '@material-ui/core/IconButton'
 import Typography from '@material-ui/core/Typography'
@@ -16,7 +16,7 @@ import ListItemText from '@material-ui/core/ListItemText'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter } from 'next/router'
-import { useAccount } from '../context/AccountProvider'
+import { useUser } from '../context/UserProvider'
 
 const useStyles = makeStyles(() => ({
   homePageLink: {
@@ -52,7 +52,7 @@ const useStyles = makeStyles(() => ({
     paddingBottom: 10,
   },
   accountText: {
-    fontSize: '0.5em',
+    fontSize: '0.7em',
   },
 }))
 
@@ -60,7 +60,9 @@ const Layout = ({ children }) => {
   const classes = useStyles()
   const [drawerOpen, setDrawerOpen] = useState(false)
   const router = useRouter()
-  const { account } = useAccount()
+  const { user } = useUser()
+
+  const logoWidth = 160
 
   const toggleDrawer = (open) => (event) => {
     if (
@@ -72,8 +74,6 @@ const Layout = ({ children }) => {
 
     setDrawerOpen(open)
   }
-
-  const logoWidth = 160
 
   return (
     <>
@@ -125,27 +125,40 @@ const Layout = ({ children }) => {
                           <ListItemText primary='Load' />
                         </ListItem>
                       </Link>
-                      <div className={classes.bottomPush}>
-                        {account ? (
+                      <Box className={classes.bottomPush} component='div'>
+                        {user ? (
                           <>
-                            <ListItem>
-                              <Typography variant='body2'>
-                                You are logged in with account:
-                              </Typography>
-                            </ListItem>
-                            <ListItem>
-                              <Typography
-                                variant='caption'
-                                className={classes.accountText}
-                              >
-                                {account}
-                              </Typography>
-                            </ListItem>
+                            <Grid
+                              container
+                              direction='column'
+                              alignItems='flex-start'
+                            >
+                              <Grid item>
+                                <Typography variant='body2'>
+                                  You are logged in with account:
+                                </Typography>
+                              </Grid>
+                              <Grid item>
+                                <Typography className={classes.accountText}>
+                                  name: {user.name}
+                                </Typography>
+                              </Grid>
+                              <Grid item>
+                                <Typography className={classes.accountText}>
+                                  address:
+                                </Typography>
+                              </Grid>
+                              <Grid item>
+                                <Typography className={classes.accountText}>
+                                  {user.address}
+                                </Typography>
+                              </Grid>
+                            </Grid>
                           </>
                         ) : (
                           <></>
                         )}
-                      </div>
+                      </Box>
                     </List>
                   </div>
                 </Drawer>

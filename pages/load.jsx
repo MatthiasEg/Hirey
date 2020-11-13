@@ -3,12 +3,12 @@ import Box from '@material-ui/core/Box'
 import { Document, Page, pdfjs } from 'react-pdf'
 
 import { Typography } from '@material-ui/core'
-import { useAccount } from '../context/AccountProvider'
+import { useContract } from '../context/ContractProvider'
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.js`
 
 const Load = () => {
-  const { contract } = useAccount()
+  const { contract } = useContract()
   const [hash, setHash] = useState('')
   const [numberOfPages, setNumberOfPages] = useState(null)
   // eslint-disable-next-line no-unused-vars
