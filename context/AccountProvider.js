@@ -1,7 +1,7 @@
 /* eslint-disable no-alert */
 import React, { useContext, useEffect, createContext, useState } from 'react'
 import Web3 from 'web3'
-import Document from '../abis/Document.json'
+import Document from '../build/Document.json'
 
 const AccountContext = createContext(null)
 

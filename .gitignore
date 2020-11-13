@@ -2,6 +2,3 @@ node_modules
 
 # next build folder ("npm run build" output)
 .next
-
-# tuffle build folder ("truffle compile" output)
-build
