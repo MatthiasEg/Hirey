@@ -8,15 +8,6 @@ const UserContext = createContext(null)
 const UserProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null)
 
-  function setUser(accounts) {
-    console.log('acocunts: ', accounts)
-    setCurrentUser(
-      users.filter((user) => {
-        return user.address === accounts[0]
-      })[0],
-    )
-  }
-
   const loadWeb3 = async () => {
     if (window.ethereum) {
       window.web3 = new Web3(window.ethereum)
@@ -33,18 +24,21 @@ const UserProvider = ({ children }) => {
   const loadAccount = async () => {
     const { web3 } = window
     const accounts = await web3.eth.getAccounts()
-    setUser(accounts)
-
-    // setup listener for accounts change
-    window.ethereum.on('accountsChanged', () => {
-      loadAccount()
-    })
+    setCurrentUser(
+      users.filter((user) => {
+        return user.address === accounts[0]
+      })[0],
+    )
   }
 
   useEffect(() => {
     ;(async () => {
       await loadWeb3()
       await loadAccount()
+      // setup listener for accounts change
+      window.ethereum.on('accountsChanged', () => {
+        loadAccount()
+      })
     })()
   }, [])
 
