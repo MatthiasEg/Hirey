@@ -77,10 +77,6 @@ const Layout = ({ children }) => {
     setDrawerOpen(open)
   }
 
-  console.log(user)
-
-  useEffect(() => {}, [user])
-
   return (
     <>
       <Head>
