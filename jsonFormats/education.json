@@ -1,0 +1,8 @@
+{
+  "type": "ausbildung",
+  "title": "bla",
+  "description": "bla",
+  "autor": "bla",
+  "publishDate": "bla",
+  "documents": ["filebuffer"]
+}
