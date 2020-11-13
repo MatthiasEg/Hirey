@@ -3,11 +3,13 @@
 import Web3 from 'web3'
 import React, { useContext, useEffect, createContext, useState } from 'react'
 import HireyStore from '../build/Document.json'
+import { useUser } from './UserProvider'
 
 const ContractContext = createContext(null)
 
 const ContractProvider = ({ children }) => {
   const [contract, setContract] = useState(null)
+  const { user } = useUser()
 
   const loadContract = async () => {
     const { web3 } = window
@@ -30,7 +32,7 @@ const ContractProvider = ({ children }) => {
     ;(async () => {
       await loadContract()
     })()
-  }, [])
+  }, [user])
 
   return (
     <ContractContext.Provider value={{ contract }}>

@@ -1,6 +1,6 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
 import { AppBar, Toolbar, Grid, Box } from '@material-ui/core'
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import IconButton from '@material-ui/core/IconButton'
 import Typography from '@material-ui/core/Typography'
 import MenuIcon from '@material-ui/icons/Menu'
@@ -140,7 +140,7 @@ const Layout = ({ children }) => {
                             <ListItemIcon>
                               <PermIdentityIcon />
                             </ListItemIcon>
-                            <ListItemText primary={`${user.name}`} />
+                            <ListItemText primary={user.name} />
                           </ListItem>
                         </Link>
                       ) : (
