@@ -1,6 +1,6 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
 import { AppBar, Toolbar, Grid, Box } from '@material-ui/core'
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import IconButton from '@material-ui/core/IconButton'
 import Typography from '@material-ui/core/Typography'
 import MenuIcon from '@material-ui/icons/Menu'
@@ -9,11 +9,13 @@ import { makeStyles } from '@material-ui/core/styles'
 import List from '@material-ui/core/List'
 import DashboardIcon from '@material-ui/icons/Dashboard'
 import CloudDownloadIcon from '@material-ui/icons/CloudDownload'
+import PermIdentityIcon from '@material-ui/icons/PermIdentity'
 import HomeIcon from '@material-ui/icons/Home'
 import ListItem from '@material-ui/core/ListItem'
 import ListItemIcon from '@material-ui/core/ListItemIcon'
 import ListItemText from '@material-ui/core/ListItemText'
 import Link from 'next/link'
+import Head from 'next/head'
 import Image from 'next/image'
 import { useRouter } from 'next/router'
 import { useUser } from '../context/UserProvider'
@@ -75,8 +77,19 @@ const Layout = ({ children }) => {
     setDrawerOpen(open)
   }
 
+  console.log(user)
+
+  useEffect(() => {}, [user])
+
   return (
     <>
+      <Head>
+        <title>Hirey</title>
+        <meta
+          name='viewport'
+          content='minimum-scale=1, initial-scale=1, width=device-width'
+        />
+      </Head>
       <AppBar position='static' color='primary'>
         <Toolbar>
           <div className={classes.root}>
@@ -114,7 +127,7 @@ const Layout = ({ children }) => {
                           <ListItemIcon>
                             <DashboardIcon />
                           </ListItemIcon>
-                          <ListItemText primary='Upload' />
+                          <ListItemText primary='upload' />
                         </ListItem>
                       </Link>
                       <Link href='/load' passHref>
@@ -122,9 +135,21 @@ const Layout = ({ children }) => {
                           <ListItemIcon>
                             <CloudDownloadIcon />
                           </ListItemIcon>
-                          <ListItemText primary='Load' />
+                          <ListItemText primary='load' />
                         </ListItem>
                       </Link>
+                      {user ? (
+                        <Link href={`/${user.name}`} passHref>
+                          <ListItem button>
+                            <ListItemIcon>
+                              <PermIdentityIcon />
+                            </ListItemIcon>
+                            <ListItemText primary={`${user.name}`} />
+                          </ListItem>
+                        </Link>
+                      ) : (
+                        <></>
+                      )}
                       <Box className={classes.bottomPush} component='div'>
                         {user ? (
                           <>
