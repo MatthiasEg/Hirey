@@ -5,9 +5,7 @@ import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
 import ListItemText from '@material-ui/core/ListItemText';
-import ListItemAvatar from '@material-ui/core/ListItemAvatar';
 import Checkbox from '@material-ui/core/Checkbox';
-import Avatar from '@material-ui/core/Avatar';
 import TextField from '@material-ui/core/TextField';
 import Button from '@material-ui/core/Button';
 import InputAdornment from '@material-ui/core/InputAdornment';
@@ -30,21 +28,17 @@ import ipfs from '../lib/IPFSClient'
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.js`
 
+// CSS Styles
 const useStyles = makeStyles((theme) => ({
-  gridroot: {
+  grid: {
     flexGrow: 1,
   },
-  listroot: {
+  list: {
     minWidth: 200,
     backgroundColor: theme.palette.background.paper,
+    marginBottom: 10,
   },  
-  listitem: {
-    overflow: "hidden"
-  },
-  listbuttonsection: {
-    marginTop: 10
-  },
-  listbuttonacc: {
+  targetAccountTextField: {
     maxWidth: 200,
     marginRight: 5
   },
@@ -61,83 +55,77 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const Applicant = () => {
+  // Providers
   const { user } = useUser()
   const { contract } = useContract();
   const classes = useStyles()
+  // States
   const [cvRecords, setCVRecords] = useState([]);
+  const [detailCVRecord, setDetailCVRecord] = useState(null);
   const [checked, setChecked] = useState([]);
   const [expanded, setExpanded] = useState(false);
-  const [detailCVRecord, setDetailCVRecord] = useState(null);
-  const [numberOfPages, setNumberOfPages] = useState(null);
-  const [pageNumber, setPageNumber] = useState(1);
   const [targetAccount, setTargetAccount] = useState('')
+  // Const
+  const pageNumber = 1;
 
   useEffect(() => {
     ;(async () => {
-      await loadCVRecordHashes()
+      await loadCVRecords()
     })()
   }, [contract])
 
-  const loadCVRecordHashes = async () => {
-    fetch("https://ipfs.infura.io/ipfs/QmdSu2BGx2i8X5svvh4Bpfjm8SjRyx3xSQ3iBjwvSQiDiu")
-    .then(response => response.json())
-    .then((jsonData) => {
-      // jsonData is parsed json object received from url
-      console.log(jsonData)
-    })
-    .catch((error) => {
-      // handle your errors here
-      console.error(error)
-    })
-
+  const loadCVRecords = async () => {
     if (contract) {
-      console.log('Start Load CV Record Hashes')
       const nbrOfCvRecordHashes = await contract.methods.getNbrOfCvRecordHashes().call()
-      const tempCVRecords = []
+      const newCVRecords = []
       for (let cvRecordHashIndex = 0; cvRecordHashIndex < nbrOfCvRecordHashes; cvRecordHashIndex++) {
-        const hash = await contract.methods.getCvRecordHash(cvRecordHashIndex).call()
-        await fetch("https://ipfs.infura.io/ipfs/" + hash[1])
+        const cvRecord = await contract.methods.getCvRecordHash(cvRecordHashIndex).call()
+        const sender = cvRecord[0]
+        const hash = cvRecord[1]
+        await fetch("https://ipfs.infura.io/ipfs/" + hash)
         .then(response => response.json())
         .then((jsonData) => {
-          jsonData.sender = hash[0]
-          tempCVRecords.push(jsonData)
+          jsonData.sender = sender
+          newCVRecords.push(jsonData)
         })
       }
-      setCVRecords(tempCVRecords)
-      setDetailCVRecord(tempCVRecords[0])
-      console.log('END Load CV Record Hashes, found '+ nbrOfCvRecordHashes)
+      setCVRecords(newCVRecords)
+      if (newCVRecords.length > 0) {
+        setDetailCVRecord(newCVRecords[0])
+      }
     }
   }
 
-  const handleToggle = (value) => () => {
-    const currentIndex = checked.indexOf(value);
+  const handleToggleCVRecordCheckbox = (cvRecordIndex) => () => {
+    const currentIndex = checked.indexOf(cvRecordIndex);
     const newChecked = [...checked];
-
     if (currentIndex === -1) {
-      newChecked.push(value);
+      newChecked.push(cvRecordIndex);
     } else {
       newChecked.splice(currentIndex, 1);
     }
     setChecked(newChecked);
   };
 
-  const handleClicked = (value) => () => {
+  const handleClickedCVRecord = (cvRecordIndex) => () => {
+    // reset expanded documents
     setExpanded(false);
-    setDetailCVRecord(cvRecords[value])
+    setDetailCVRecord(cvRecords[cvRecordIndex])
   };
   
-  const onSubmit = (event) => {
+  const onShare = (event) => {
     event.preventDefault();
-    const records = []
+    const selectedRecords = []
     for (let checkedIndex = 0; checkedIndex < checked.length; checkedIndex++) {
-      records.push(cvRecords[checked[checkedIndex]])
+      selectedRecords.push(cvRecords[checked[checkedIndex]])
     }
 
     const cvDocument = {
       "name": user.name,
       "address": user.address,
-      "records": records
+      "records": selectedRecords
     }
+
     ipfs.add(Buffer.from(JSON.stringify(cvDocument))).then((response) => {
       console.log(response.path)
       contract.methods
@@ -146,139 +134,132 @@ const Applicant = () => {
           from: user.address,
         })
         .then(() => {
-          setUploadSuccessful(response.path)
+          console.log('successfully uploaded: https://ipfs.infura.io/ipfs/' + response.path)
+          console.log(cvDocument)
         })
     })
   }
 
-  const setUploadSuccessful = (hash) => {
-    console.log('successfully uploaded' + hash)
-  }
-
+  // open and close expand with documents
   const handleExpandClick = () => {
     setExpanded(!expanded);
   };
 
-  function onDocumentLoadSuccess({ numPages }) {
-    setNumberOfPages(numPages)
-  }
-
   return (
-    <Box className={classes.gridroot} component='div'>
-      <Grid container spacing={3}>
-        <Grid item xs={4}>
-          { cvRecords.length>0 ? (
-          <>
-          <List dense className={classes.listroot}>
-            {cvRecords.map((cvRecord, index) => {
-              const labelId = `checkbox-list-secondary-label-${index}`;
-              return (
-                <ListItem 
-                  key={index}
-                  onClick={handleClicked(index)}
-                  className={classes.listitem}
-                  button>
-                  <ListItemAvatar>
-                    <Avatar />
-                  </ListItemAvatar>
-                  <ListItemText id={labelId} 
-                    primary={cvRecord.title} 
-                    secondary={cvRecord.sender}/>
-                  <ListItemSecondaryAction>
-                    <Checkbox
-                      edge="end"
-                      onChange={handleToggle(index)}
-                      checked={checked.indexOf(index) !== -1}
-                      inputProps={{ 'aria-labelledby': labelId }}
-                    />
-                  </ListItemSecondaryAction>
-                </ListItem>
-              );
-            })}
-          </List>
-          <Box component='div' className={classes.listbuttonsection} >
-            <Typography paragraph>
-              Number of selected cv records to share: {checked.length}
-            </Typography>
-            <form onSubmit={onSubmit}>
-              <TextField onChange={event => setTargetAccount(event.target.value)} className={classes.listbuttonacc} label="Share for AccountId" required
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <AccountCircle />
-                    </InputAdornment>
-                  ),
-                }
-              }
-              />
-              <Button type='submit' variant="contained" color="primary">
-                Share
-              </Button>
-            </form>
-          </Box>
-          </>
-        ) : (
-          <>
-          No Cv Records found!
-          </>
-        )}
-        </Grid>
-        <Grid item xs={8} >
-          { detailCVRecord !=null &&
-          <Card>
-            <CardHeader
-              title={detailCVRecord.title}
-              subheader={'by ' + detailCVRecord.autor + ' | publish date: ' + detailCVRecord.publishDate}
-            />
-            <CardContent>
-              { detailCVRecord.type=='Anstellung' &&
-                <Typography variant="subtitle1" component="p">
-                  From: { detailCVRecord.from } To: { detailCVRecord.to }
-                </Typography>
-              }
-              <Typography variant="body2" component="p">
-                { detailCVRecord.description }
+    <Box component='div'>
+      { cvRecords.length > 0 ? (<>
+        <Grid container className={classes.grid} spacing={3}>
+
+          {/* LEFT SIDE */}
+          <Grid item xs={4}>
+            <List dense className={classes.list}>
+              {cvRecords.map((cvRecord, cvRecordIndex) => {
+                const labelId = `checkbox-list-secondary-label-${cvRecordIndex}`;
+                return (
+                  <ListItem 
+                    key={cvRecordIndex}
+                    onClick={handleClickedCVRecord(cvRecordIndex)}
+                    className={classes.listItem}
+                    button>
+                    <ListItemText id={labelId} 
+                      primary={cvRecord.title} 
+                      secondary={cvRecord.sender.substring(0, 25) + '...'}/>
+                    <ListItemSecondaryAction>
+                      <Checkbox
+                        edge="end"
+                        onChange={handleToggleCVRecordCheckbox(cvRecordIndex)}
+                        checked={checked.indexOf(cvRecordIndex) !== -1}
+                        inputProps={{ 'aria-labelledby': labelId }}
+                      />
+                    </ListItemSecondaryAction>
+                  </ListItem>
+                );
+              })}
+            </List>
+            <Box component='div'>
+              <Typography paragraph>
+                Number of selected cv records to share: {checked.length}
               </Typography>
-            </CardContent>
-            <Divider light />
-            <CardActions disableSpacing>
-              { detailCVRecord.documents.length > 0 &&
-                <IconButton
-                  className={clsx(classes.expand, {
-                    [classes.expandOpen]: expanded,
-                  })}
-                  onClick={handleExpandClick}
-                  aria-expanded={expanded}
-                  aria-label="show documents"
-                > 
-                  <ExpandMoreIcon />
-                </IconButton>
-              }
-            </CardActions>
-            <Collapse in={expanded} timeout="auto" unmountOnExit>
+              <form onSubmit={onShare}>
+                <TextField onChange={event => setTargetAccount(event.target.value)} className={classes.targetAccountTextField} label="Share for AccountId" required
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <AccountCircle />
+                      </InputAdornment>
+                    ),
+                  }
+                }
+                />
+                <Button type='submit' variant="contained" color="primary">
+                  Share
+                </Button>
+              </form>
+            </Box>
+          </Grid>
+
+          
+          {/* RIGHT SIDE */}
+          <Grid item xs={8} >
+            { detailCVRecord !=null &&
+            <Card>
+              <CardHeader
+                title={detailCVRecord.title}
+                subheader={'by ' + detailCVRecord.autor + ' | publish date: ' + detailCVRecord.publishDate}
+              />
               <CardContent>
-                <Typography paragraph>Documents</Typography>
-                {detailCVRecord.documents.map((documentHash, index) => {
-                  return (
-                    <Box component='div' key={index}>
-                      <p>Document Link: https://ipfs.infura.io/ipfs/{documentHash}</p>
-                      <Document file={`https://ipfs.infura.io/ipfs/${documentHash}`}
-                                onLoadSuccess={onDocumentLoadSuccess}
-                      >
-                        <Page pageNumber={pageNumber} />
-                      </Document>
-                      <p>
-                        Page {pageNumber} of {numberOfPages}
-                      </p>
-                    </Box>
-                  );
-                })}
+                { detailCVRecord.type=='Anstellung' &&
+                  <Typography variant="subtitle1" component="p">
+                    From: { detailCVRecord.from } To: { detailCVRecord.to }
+                  </Typography>
+                }
+                <Typography variant="body2" component="p">
+                  { detailCVRecord.description }
+                </Typography>
               </CardContent>
-            </Collapse>
-          </Card>
-          }
+              <Divider light />
+              <CardActions disableSpacing>
+                { detailCVRecord.documents.length > 0 &&
+                  <IconButton
+                    className={clsx(classes.expand, {
+                      [classes.expandOpen]: expanded,
+                    })}
+                    onClick={handleExpandClick}
+                    aria-expanded={expanded}
+                    aria-label="show documents"
+                  > 
+                    <ExpandMoreIcon />
+                  </IconButton>
+                }
+              </CardActions>
+              <Collapse in={expanded} timeout="auto" unmountOnExit>
+                <CardContent>
+                  <Typography paragraph>Documents</Typography>
+                  {detailCVRecord.documents.map((documentHash, documentIndex) => {
+                    return (
+                      <Box component='div' key={documentIndex}>
+                        <p>Document Link: https://ipfs.infura.io/ipfs/{documentHash}</p>
+                        <Document file={`https://ipfs.infura.io/ipfs/${documentHash}`}
+                        >
+                          <Page pageNumber={pageNumber} />
+                        </Document>
+                      </Box>
+                    );
+                  })}
+                </CardContent>
+              </Collapse>
+            </Card>
+            }
+          </Grid>
         </Grid>
-      </Grid>
+      
+      
+      {/* Fallback */}
+      </>) : (
+        <>
+          No Cv Records found!
+        </>
+      )}
     </Box>
   )
 }
