@@ -25,6 +25,7 @@ import clsx from 'clsx'
 import Collapse from '@material-ui/core/Collapse'
 import Divider from '@material-ui/core/Divider'
 import { Document, Page, pdfjs } from 'react-pdf'
+import _ from 'underscore'
 import { useContract } from '../context/ContractProvider'
 import { useUser } from '../context/UserProvider'
 import ipfs from '../lib/IPFSClient'
@@ -80,7 +81,7 @@ const Applicant = () => {
       for (
         let cvRecordHashIndex = 0;
         cvRecordHashIndex < nbrOfCvRecordHashes;
-        cvRecordHashIndex + 1
+        cvRecordHashIndex += 1
       ) {
         const cvRecord = await contract.methods
           .getCvRecordHash(cvRecordHashIndex)
@@ -124,7 +125,7 @@ const Applicant = () => {
     for (
       let checkedIndex = 0;
       checkedIndex < checked.length;
-      checkedIndex + 1
+      checkedIndex += 1
     ) {
       selectedRecords.push(cvRecords[checked[checkedIndex]])
     }
