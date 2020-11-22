@@ -66,4 +66,8 @@ contract HireyStore {
     require(cvDocumentHashes[msg.sender][cvDocumentIndex].isUnlocked);
     return (cvDocumentHashes[msg.sender][cvDocumentIndex].author, cvDocumentHashes[msg.sender][cvDocumentIndex].documentHash);
   }
+
+  function isCvDocumentUnlocked(uint cvDocumentIndex) public view returns (bool) {
+    return cvDocumentHashes[msg.sender][cvDocumentIndex].isUnlocked;
+  }
 }
