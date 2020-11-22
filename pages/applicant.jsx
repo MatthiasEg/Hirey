@@ -45,6 +45,10 @@ const useStyles = makeStyles((theme) => ({
     maxWidth: 200,
     marginRight: 5,
   },
+  cvDocumentTitleTextField: {
+    width: '100%',
+    marginBottom: 20,
+  },
   expand: {
     transform: 'rotate(0deg)',
     marginLeft: 'auto',
@@ -68,6 +72,7 @@ const Applicant = () => {
   const [checked, setChecked] = useState([])
   const [expanded, setExpanded] = useState(false)
   const [targetAccount, setTargetAccount] = useState('')
+  const [cvDocumentTitle, setCVDocumentTitle] = useState('')
   // Const
   const pageNumber = 1
 
@@ -130,6 +135,7 @@ const Applicant = () => {
     }
 
     const cvDocument = {
+      title: cvDocumentTitle,
       name: user.name,
       address: user.address,
       records: selectedRecords,
@@ -201,6 +207,12 @@ const Applicant = () => {
                   Number of selected cv records to share: {checked.length}
                 </Typography>
                 <form onSubmit={onShare}>
+                <TextField
+                    onChange={(event) => setCVDocumentTitle(event.target.value)}
+                    className={classes.cvDocumentTitleTextField}
+                    label='CV document title:'
+                    required
+                  />
                   <TextField
                     onChange={(event) => setTargetAccount(event.target.value)}
                     className={classes.targetAccountTextField}
@@ -281,7 +293,7 @@ const Applicant = () => {
             </Grid>
           </Grid>
 
-          {/* Fallback */}
+          {/* Fallback Page*/}
         </>
       ) : (
         <>No Cv Records found!</>
