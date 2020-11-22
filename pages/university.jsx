@@ -23,7 +23,9 @@ const University = () => {
   const [desc, setDesc] = useState('')
   const [author, setAuthor] = useState('Hochschule Luzern')
   const [date, setDate] = useState('')
+  const [doc, setDoc] = useState('')
 
+  {/*
   const captureFile = (event) => {
     event.preventDefault()
     const file = event.target.files[0]
@@ -31,39 +33,51 @@ const University = () => {
     if (!file) return
     reader.readAsArrayBuffer(file)
     reader.onloadend = () => {
-      setBuffer(Buffer.from(reader.result))
+      reader.readAsDataURL(file)
+    //setBuffer(Buffer.from(reader.result))
+    }
+    console.log(file)
+  }
+  */}
+
+  const captureFile = (event) => {
+    event.preventDefault()
+    let selectedFile = event.target.files;
+    let file = null;
+    let fileName = "";
+
+    //Check File is not Empty
+    if (selectedFile.length > 0) {
+        // Select the very first file from list
+        let fileToLoad = selectedFile[0];
+        fileName = fileToLoad.name;
+        // FileReader function for read the file.
+        let fileReader = new FileReader();
+        // Onload of file read the file content
+        fileReader.onload = function(fileLoadedEvent) {
+            file = fileLoadedEvent.target.result;
+            // Print data in console
+            //console.log(file);
+            setDoc(file)
+        };
+        // Convert data to base64
+        fileReader.readAsDataURL(fileToLoad);
+        console.log(doc)
     }
   }
 
   // Anpassen für JSON
   const onSubmit = (event) => {
     event.preventDefault()
-    console.log(JSON.stringify({
+    JSON.stringify({
       "type": edu,
       "title": title,
       "description": desc,
       "autor": author,
       "publishDate": date,
-      //"documents": ["filebuffer"]
-    }))
-
-    if (buffer) {
-      ipfs.add(buffer).then((response) => {
-        setHash(response.path)
-        contract.methods
-          .set(response.path)
-          .send({
-            from: user.address,
-          })
-          .then(() => {
-            setUploadSuccessful(true)
-          })
-      })
-    }
-
-    alert ("Hallo")
+      "documents": doc
+    })
   }
-
 
   return (
     <Box component='div'>
