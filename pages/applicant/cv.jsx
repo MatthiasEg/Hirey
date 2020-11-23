@@ -144,7 +144,7 @@ const CV = () => {
     ipfs.add(Buffer.from(JSON.stringify(cvDocument))).then((response) => {
       console.log(response.path)
       contract.methods
-        .shareCVDocument(response.path)
+        .storeCVDocument(response.path)
         .send({
           from: user.address,
         })
