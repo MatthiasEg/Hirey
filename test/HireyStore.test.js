@@ -67,8 +67,8 @@ contract('HireyStore', (accounts) => {
       assert.equal(0,  await hireyStore.getNbrOfCvDocumentHashes({from: applicantAccount}))
       assert.equal(0,  await hireyStore.getNbrOfCvDocumentHashes({from: applicantAccountOther}))
 
-      await hireyStore.storeCVDocumentFor(applicantAccountOther, cvDocumentHashOne, {from: applicantAccountOther})
-      await hireyStore.storeCVDocumentFor(applicantAccountOther, cvDocumentHashTwo, {from: applicantAccountOther})
+      await hireyStore.storeCVDocument(cvDocumentHashOne, {from: applicantAccountOther})
+      await hireyStore.storeCVDocument(cvDocumentHashTwo, {from: applicantAccountOther})
       
       assert.equal(0, await hireyStore.getNbrOfCvDocumentHashes({from: applicantAccount}))
       assert.equal(2, await hireyStore.getNbrOfCvDocumentHashes({from: applicantAccountOther}))
@@ -94,7 +94,7 @@ contract('HireyStore', (accounts) => {
     it('store cv document hash for humanResourcesAccount', async () => {
       assert.equal(0,  await hireyStore.getNbrOfCvDocumentHashes({from: humanResourcesAccount}))
 
-      await hireyStore.storeCVDocumentFor(humanResourcesAccount, cvDocumentHashOne, {from: applicantAccount})
+      await hireyStore.shareCVDocument(humanResourcesAccount, 0, cvDocumentHashOne, {from: applicantAccount})
       
       assert.equal(1, await hireyStore.getNbrOfCvDocumentHashes({from: humanResourcesAccount}))
     })
@@ -167,5 +167,10 @@ contract('HireyStore', (accounts) => {
           assert(error.message.startsWith(expectedMessage), "Expected an error starting with '" + expectedMessage + "' but got '" + error.message + "' instead");
         }
       })  
+
+      it('check file is shared to applicant and humanResourcesAccount', async () => {
+        assert.equal(1, await hireyStore.getNbrOfSharedTo(0, {from: applicantAccount}))
+        assert.equal(humanResourcesAccount, await hireyStore.getSharedTo(0, 0, {from: applicantAccount}))
+      })
   })
 })
