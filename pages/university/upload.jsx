@@ -1,9 +1,9 @@
 import React, { useState } from 'react'
 import Box from '@material-ui/core/Box'
 import Typography from '@material-ui/core/Typography'
-import ipfs from '../lib/IPFSClient'
-import { useUser } from '../context/UserProvider'
-import { useContract } from '../context/ContractProvider'
+import ipfs from '../../lib/IPFSClient'
+import { useUser } from '../../context/UserProvider'
+import { useContract } from '../../context/ContractProvider'
 
 const Upload = () => {
   const [buffer, setBuffer] = useState(null)

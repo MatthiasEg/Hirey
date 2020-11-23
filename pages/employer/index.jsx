@@ -1,7 +1,7 @@
 import React from 'react'
 
 const Employer = () => {
-  return <h1>test</h1>
+  return <h1>Employer landing page</h1>
 }
 
 export default Employer

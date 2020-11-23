@@ -81,7 +81,7 @@ const University = () => {
 
   return (
     <Box component='div'>
-      <h1>University</h1>
+  return <h1>University landing page</h1>
       <h3>Information</h3>
       <form onSubmit={onSubmit}>
         <TextField required id="standard-required1" label="Ausbildungstyp" fullWidth value={edu} onChange={event => setEdu(event.target.value)} />
