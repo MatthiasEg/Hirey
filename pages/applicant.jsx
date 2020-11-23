@@ -174,7 +174,7 @@ const Applicant = () => {
         <>
           <Grid container className={classes.grid} spacing={3}>
             {/* LEFT SIDE */}
-            <Grid item xs={4}>
+            <Grid item xs={12} md={6}>
               <List dense className={classes.list}>
                 {cvRecords.map((cvRecord, cvRecordIndex) => {
                   const labelId = `checkbox-list-secondary-label-${cvRecordIndex}`
@@ -207,7 +207,7 @@ const Applicant = () => {
                   Number of selected cv records to share: {checked.length}
                 </Typography>
                 <form onSubmit={onShare}>
-                <TextField
+                  <TextField
                     onChange={(event) => setCVDocumentTitle(event.target.value)}
                     className={classes.cvDocumentTitleTextField}
                     label='CV document title:'
@@ -234,7 +234,7 @@ const Applicant = () => {
             </Grid>
 
             {/* RIGHT SIDE */}
-            <Grid item xs={8}>
+            <Grid item xs={12} md={6}>
               {detailCVRecord != null && (
                 <Card>
                   <CardHeader
@@ -293,7 +293,7 @@ const Applicant = () => {
             </Grid>
           </Grid>
 
-          {/* Fallback Page*/}
+          {/* Fallback Page */}
         </>
       ) : (
         <>No Cv Records found!</>
