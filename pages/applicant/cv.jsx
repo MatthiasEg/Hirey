@@ -123,7 +123,7 @@ const CV = () => {
     setDetailCVRecord(cvRecords[cvRecordIndex])
   }
 
-  const onShare = (event) => {
+  const onCreate = (event) => {
     event.preventDefault()
     const selectedRecords = []
     for (
@@ -144,7 +144,7 @@ const CV = () => {
     ipfs.add(Buffer.from(JSON.stringify(cvDocument))).then((response) => {
       console.log(response.path)
       contract.methods
-        .storeCVDocumentFor(targetAccount, response.path)
+        .shareCVDocument(response.path)
         .send({
           from: user.address,
         })
@@ -204,30 +204,17 @@ const CV = () => {
               </List>
               <Box component='div'>
                 <Typography paragraph>
-                  Number of selected cv records to share: {checked.length}
+                  Number of selected cv records: {checked.length}
                 </Typography>
-                <form onSubmit={onShare}>
+                <form onSubmit={onCreate}>
                   <TextField
                     onChange={(event) => setCVDocumentTitle(event.target.value)}
                     className={classes.cvDocumentTitleTextField}
                     label='CV document title:'
                     required
                   />
-                  <TextField
-                    onChange={(event) => setTargetAccount(event.target.value)}
-                    className={classes.targetAccountTextField}
-                    label='Share for AccountId'
-                    required
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position='start'>
-                          <AccountCircle />
-                        </InputAdornment>
-                      ),
-                    }}
-                  />
                   <Button type='submit' variant='contained' color='primary'>
-                    Share
+                    Create
                   </Button>
                 </form>
               </Box>
