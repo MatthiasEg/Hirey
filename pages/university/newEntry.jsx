@@ -2,7 +2,7 @@ import React from 'react'
 // imports for TextFields
 import Box from '@material-ui/core/Box'
 import TextField from '@material-ui/core/TextField';
-//imports for upload (unused atm)
+//imports for upload
 import { useState } from 'react'
 import ipfs from '../../lib/IPFSClient'
 import { useUser } from '../../context/UserProvider'
@@ -10,7 +10,7 @@ import { useContract } from '../../context/ContractProvider'
 
 const NewEntry = () => {
   
-  // States from Upload?
+  // States from Upload
   const [buffer, setBuffer] = useState(null)
   const [hash, setHash] = useState('')
   const [uploadSuccessful, setUploadSuccessful] = useState(false)
@@ -24,21 +24,6 @@ const NewEntry = () => {
   const [author, setAuthor] = useState('Hochschule Luzern')
   const [date, setDate] = useState('')
   const [doc, setDoc] = useState('')
-
-  {/*
-  const captureFile = (event) => {
-    event.preventDefault()
-    const file = event.target.files[0]
-    const reader = new window.FileReader()
-    if (!file) return
-    reader.readAsArrayBuffer(file)
-    reader.onloadend = () => {
-      reader.readAsDataURL(file)
-    //setBuffer(Buffer.from(reader.result))
-    }
-    console.log(file)
-  }
-  */}
 
   const captureFile = (event) => {
     event.preventDefault()
@@ -66,18 +51,16 @@ const NewEntry = () => {
     }
   }
 
-  // Anpassen für JSON
   const onSubmit = (event) => {
     event.preventDefault()
-    //remove console
-    console.log(JSON.stringify({
+    JSON.stringify({
       "type": edu,
       "title": title,
       "description": desc,
       "autor": author,
       "publishDate": date,
       "documents": doc
-    }))
+    })
   }
 
   return (
@@ -96,8 +79,7 @@ const NewEntry = () => {
         <TextField required id="standard-required3" label="Publizierungsdatum" fullWidth value={date} onChange={event => setDate(event.target.value)}  />
         &nbsp;&nbsp;
         <h3>Certificate</h3>
-        {/* <input required id="input1" type='file' onChange={captureFile}/> */}
-        <input id="input1" type='file' onChange={captureFile}/>
+        <input required id="input1" type='file' onChange={captureFile}/>
         &nbsp;&nbsp;
         <h2>Upload</h2>
         <input type='submit' value='Auf zur Blockchain' />
