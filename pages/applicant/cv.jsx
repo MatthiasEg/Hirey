@@ -25,9 +25,9 @@ import clsx from 'clsx'
 import Collapse from '@material-ui/core/Collapse'
 import Divider from '@material-ui/core/Divider'
 import { Document, Page, pdfjs } from 'react-pdf'
-import { useContract } from '../context/ContractProvider'
-import { useUser } from '../context/UserProvider'
-import ipfs from '../lib/IPFSClient'
+import { useContract } from '../../context/ContractProvider'
+import { useUser } from '../../context/UserProvider'
+import ipfs from '../../lib/IPFSClient'
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.js`
 
@@ -45,6 +45,10 @@ const useStyles = makeStyles((theme) => ({
     maxWidth: 200,
     marginRight: 5,
   },
+  cvDocumentTitleTextField: {
+    width: '100%',
+    marginBottom: 20,
+  },
   expand: {
     transform: 'rotate(0deg)',
     marginLeft: 'auto',
@@ -57,7 +61,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }))
 
-const Applicant = () => {
+const CV = () => {
   // Providers
   const { user } = useUser()
   const { contract } = useContract()
@@ -68,6 +72,7 @@ const Applicant = () => {
   const [checked, setChecked] = useState([])
   const [expanded, setExpanded] = useState(false)
   const [targetAccount, setTargetAccount] = useState('')
+  const [cvDocumentTitle, setCVDocumentTitle] = useState('')
   // Const
   const pageNumber = 1
 
@@ -80,7 +85,7 @@ const Applicant = () => {
       for (
         let cvRecordHashIndex = 0;
         cvRecordHashIndex < nbrOfCvRecordHashes;
-        cvRecordHashIndex + 1
+        cvRecordHashIndex += 1
       ) {
         const cvRecord = await contract.methods
           .getCvRecordHash(cvRecordHashIndex)
@@ -118,18 +123,19 @@ const Applicant = () => {
     setDetailCVRecord(cvRecords[cvRecordIndex])
   }
 
-  const onShare = (event) => {
+  const onCreate = (event) => {
     event.preventDefault()
     const selectedRecords = []
     for (
       let checkedIndex = 0;
       checkedIndex < checked.length;
-      checkedIndex + 1
+      checkedIndex += 1
     ) {
       selectedRecords.push(cvRecords[checked[checkedIndex]])
     }
 
     const cvDocument = {
+      title: cvDocumentTitle,
       name: user.name,
       address: user.address,
       records: selectedRecords,
@@ -138,7 +144,7 @@ const Applicant = () => {
     ipfs.add(Buffer.from(JSON.stringify(cvDocument))).then((response) => {
       console.log(response.path)
       contract.methods
-        .storeCVDocumentFor(targetAccount, response.path)
+        .shareCVDocument(response.path)
         .send({
           from: user.address,
         })
@@ -168,7 +174,7 @@ const Applicant = () => {
         <>
           <Grid container className={classes.grid} spacing={3}>
             {/* LEFT SIDE */}
-            <Grid item xs={4}>
+            <Grid item xs={12} md={6}>
               <List dense className={classes.list}>
                 {cvRecords.map((cvRecord, cvRecordIndex) => {
                   const labelId = `checkbox-list-secondary-label-${cvRecordIndex}`
@@ -198,31 +204,24 @@ const Applicant = () => {
               </List>
               <Box component='div'>
                 <Typography paragraph>
-                  Number of selected cv records to share: {checked.length}
+                  Number of selected cv records: {checked.length}
                 </Typography>
-                <form onSubmit={onShare}>
+                <form onSubmit={onCreate}>
                   <TextField
-                    onChange={(event) => setTargetAccount(event.target.value)}
-                    className={classes.targetAccountTextField}
-                    label='Share for AccountId'
+                    onChange={(event) => setCVDocumentTitle(event.target.value)}
+                    className={classes.cvDocumentTitleTextField}
+                    label='CV document title:'
                     required
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position='start'>
-                          <AccountCircle />
-                        </InputAdornment>
-                      ),
-                    }}
                   />
                   <Button type='submit' variant='contained' color='primary'>
-                    Share
+                    Create
                   </Button>
                 </form>
               </Box>
             </Grid>
 
             {/* RIGHT SIDE */}
-            <Grid item xs={8}>
+            <Grid item xs={12} md={6}>
               {detailCVRecord != null && (
                 <Card>
                   <CardHeader
@@ -281,7 +280,7 @@ const Applicant = () => {
             </Grid>
           </Grid>
 
-          {/* Fallback */}
+          {/* Fallback Page */}
         </>
       ) : (
         <>No Cv Records found!</>
@@ -290,4 +289,4 @@ const Applicant = () => {
   )
 }
 
-export default Applicant
+export default CV

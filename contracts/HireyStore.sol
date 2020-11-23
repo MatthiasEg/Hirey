@@ -20,6 +20,8 @@ contract HireyStore {
   mapping(address => uint) nbrOfCvRecordHashes;
   mapping(address => CVDocument[]) cvDocumentHashes;
   mapping(address => uint) nbrOfCvDocumentHashes;
+  mapping(address => mapping(uint => address[])) sharedTo;
+  mapping(address => mapping(uint => uint)) nbrOfSharedTo;
 
   constructor() public {
     contractCreatorAddress = msg.sender;
@@ -31,14 +33,19 @@ contract HireyStore {
     nbrOfCvRecordHashes[_applicantAccount] = nbrOfCvRecordHashes[_applicantAccount] + 1;
   }
 
-  // Bewerber kann seinen CV-Hash für sich selber speicher (targetAccount == msg.sender)
+  // Bewerber kann seinen CVDocument-Hash für sich selber speicher
+  function storeCVDocument(string memory _cvDocumentHash) public {
+    cvDocumentHashes[msg.sender].push(CVDocument({author: msg.sender, documentHash: _cvDocumentHash, isUnlocked: true}));
+    nbrOfCvDocumentHashes[msg.sender] = nbrOfCvDocumentHashes[msg.sender] + 1;
+  }
+
   // Bewerber kann seinen CV-Hash für eine HR-Abteilung speichern. Die HR-Abteilung muss den Eintrag dann mit Eth freischalten (unlock=True).
-  function storeCVDocumentFor(address _targetAccount, string memory _cvDocumentHash) public {
-    if(_targetAccount == msg.sender) {
-      cvDocumentHashes[_targetAccount].push(CVDocument({author: msg.sender, documentHash: _cvDocumentHash, isUnlocked: true}));
-    } else {
-      cvDocumentHashes[_targetAccount].push(CVDocument({author: msg.sender, documentHash: _cvDocumentHash, isUnlocked: false}));
-    }
+  // Beim Teilen gibt er den neuen cvDocumentHash und den index des alten Documentes mit. 
+  function shareCVDocument(address _targetAccount, uint cvDocumentIndex, string memory _cvDocumentHash) public {
+    require(_targetAccount != msg.sender);
+    cvDocumentHashes[_targetAccount].push(CVDocument({author: msg.sender, documentHash: _cvDocumentHash, isUnlocked: false}));
+    sharedTo[msg.sender][cvDocumentIndex].push(_targetAccount);
+    nbrOfSharedTo[msg.sender][cvDocumentIndex] = nbrOfSharedTo[msg.sender][cvDocumentIndex] + 1;
     nbrOfCvDocumentHashes[_targetAccount] = nbrOfCvDocumentHashes[_targetAccount] + 1;
   }
 
@@ -65,5 +72,17 @@ contract HireyStore {
   function getCvDocumentHash(uint cvDocumentIndex) public view returns (address, string memory) {
     require(cvDocumentHashes[msg.sender][cvDocumentIndex].isUnlocked);
     return (cvDocumentHashes[msg.sender][cvDocumentIndex].author, cvDocumentHashes[msg.sender][cvDocumentIndex].documentHash);
+  }
+
+  function isCvDocumentUnlocked(uint cvDocumentIndex) public view returns (bool) {
+    return cvDocumentHashes[msg.sender][cvDocumentIndex].isUnlocked;
+  }
+
+  function getNbrOfSharedTo(uint cvDocumentIndex) public view returns (uint) {
+    return nbrOfSharedTo[msg.sender][cvDocumentIndex];
+  }
+
+  function getSharedTo(uint cvDocumentIndex, uint sharedToIndex) public view returns (address) {
+    return sharedTo[msg.sender][cvDocumentIndex][sharedToIndex];
   }
 }

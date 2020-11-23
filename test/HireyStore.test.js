@@ -67,8 +67,8 @@ contract('HireyStore', (accounts) => {
       assert.equal(0,  await hireyStore.getNbrOfCvDocumentHashes({from: applicantAccount}))
       assert.equal(0,  await hireyStore.getNbrOfCvDocumentHashes({from: applicantAccountOther}))
 
-      await hireyStore.storeCVDocumentFor(applicantAccountOther, cvDocumentHashOne, {from: applicantAccountOther})
-      await hireyStore.storeCVDocumentFor(applicantAccountOther, cvDocumentHashTwo, {from: applicantAccountOther})
+      await hireyStore.storeCVDocument(cvDocumentHashOne, {from: applicantAccountOther})
+      await hireyStore.storeCVDocument(cvDocumentHashTwo, {from: applicantAccountOther})
       
       assert.equal(0, await hireyStore.getNbrOfCvDocumentHashes({from: applicantAccount}))
       assert.equal(2, await hireyStore.getNbrOfCvDocumentHashes({from: applicantAccountOther}))
@@ -94,7 +94,7 @@ contract('HireyStore', (accounts) => {
     it('store cv document hash for humanResourcesAccount', async () => {
       assert.equal(0,  await hireyStore.getNbrOfCvDocumentHashes({from: humanResourcesAccount}))
 
-      await hireyStore.storeCVDocumentFor(humanResourcesAccount, cvDocumentHashOne, {from: applicantAccount})
+      await hireyStore.shareCVDocument(humanResourcesAccount, 0, cvDocumentHashOne, {from: applicantAccount})
       
       assert.equal(1, await hireyStore.getNbrOfCvDocumentHashes({from: humanResourcesAccount}))
     })
@@ -103,6 +103,8 @@ contract('HireyStore', (accounts) => {
       assert.equal(1, await hireyStore.getNbrOfCvDocumentHashes({from: humanResourcesAccount}))
       
       try {
+        let isUnlocked = await hireyStore.isCvDocumentUnlocked(0, {from: humanResourcesAccount})
+        assert(!isUnlocked, "Expected unlocked cv document!");
         await hireyStore.getCvDocumentHash(0, {from: humanResourcesAccount})
         assert(false, "Expected an error but did not get one");
       }
@@ -116,6 +118,8 @@ contract('HireyStore', (accounts) => {
       assert.equal(1, await hireyStore.getNbrOfCvDocumentHashes({from: humanResourcesAccount}))
       
       try {
+        let isUnlocked = await hireyStore.isCvDocumentUnlocked(0, {from: humanResourcesAccount})
+        assert(!isUnlocked, "Expected unlocked cv document!");
         await hireyStore.unlockCVDocument(0, {from: humanResourcesAccount, value: 29999})
         assert(false, "Expected an error but did not get one");
       }
@@ -127,12 +131,16 @@ contract('HireyStore', (accounts) => {
 
     it('try unlocked cv document hash for humanResourcesAccount with value more or equals 30000', async () => {
       assert.equal(1, await hireyStore.getNbrOfCvDocumentHashes({from: humanResourcesAccount}))
-      
+      let isUnlocked = await hireyStore.isCvDocumentUnlocked(0, {from: humanResourcesAccount})
+      assert(!isUnlocked, "Expected unlocked cv document!");
+
       let balanceContractCreatorAccount = await web3.eth.getBalance(contractCreatorAccount)
       let balanceHumanResourcesAccount =  await web3.eth.getBalance(humanResourcesAccount)
       
       await hireyStore.unlockCVDocument(0, {from: humanResourcesAccount, value: 30000})
-     
+
+      isUnlocked = await hireyStore.isCvDocumentUnlocked(0, {from: humanResourcesAccount})
+      assert(isUnlocked, "Expected unlocked cv document!");
       assert(await web3.eth.getBalance(contractCreatorAccount) > balanceContractCreatorAccount)
       assert(await web3.eth.getBalance(humanResourcesAccount) < balanceHumanResourcesAccount)
     })
@@ -159,5 +167,10 @@ contract('HireyStore', (accounts) => {
           assert(error.message.startsWith(expectedMessage), "Expected an error starting with '" + expectedMessage + "' but got '" + error.message + "' instead");
         }
       })  
+
+      it('check file is shared to applicant and humanResourcesAccount', async () => {
+        assert.equal(1, await hireyStore.getNbrOfSharedTo(0, {from: applicantAccount}))
+        assert.equal(humanResourcesAccount, await hireyStore.getSharedTo(0, 0, {from: applicantAccount}))
+      })
   })
 })
