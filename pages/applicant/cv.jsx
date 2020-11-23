@@ -25,9 +25,9 @@ import clsx from 'clsx'
 import Collapse from '@material-ui/core/Collapse'
 import Divider from '@material-ui/core/Divider'
 import { Document, Page, pdfjs } from 'react-pdf'
-import { useContract } from '../context/ContractProvider'
-import { useUser } from '../context/UserProvider'
-import ipfs from '../lib/IPFSClient'
+import { useContract } from '../../context/ContractProvider'
+import { useUser } from '../../context/UserProvider'
+import ipfs from '../../lib/IPFSClient'
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.js`
 
@@ -61,7 +61,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }))
 
-const Applicant = () => {
+const CV = () => {
   // Providers
   const { user } = useUser()
   const { contract } = useContract()
@@ -302,4 +302,4 @@ const Applicant = () => {
   )
 }
 
-export default Applicant
+export default CV
