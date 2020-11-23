@@ -126,14 +126,6 @@ const Layout = ({ children }) => {
                           <ListItemText primary='upload' />
                         </ListItem>
                       </Link>
-                      <Link href='/load' passHref>
-                        <ListItem button>
-                          <ListItemIcon>
-                            <CloudDownloadIcon />
-                          </ListItemIcon>
-                          <ListItemText primary='load' />
-                        </ListItem>
-                      </Link>
                       {user ? (
                         <Link href={`/${user.name}`} passHref>
                           <ListItem button>
