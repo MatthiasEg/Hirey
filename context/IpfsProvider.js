@@ -1,6 +1,6 @@
 import { useContext, createContext } from 'react'
 import { useUser } from './UserProvider'
-import fileEncryptor from '../lib/FileEncryptor'
+import fileCrypto from '../lib/FileCrypto'
 import ipfs from '../lib/IPFSClient'
 
 const IpfsContext = createContext(null)
@@ -25,7 +25,7 @@ const upload = async (publicKeyString, data) => {
   }
 
   const serializedData = JSON.stringify(data)
-  const encryptedData = await fileEncryptor.encrypt(
+  const encryptedData = await fileCrypto.encrypt(
     publicKeyString,
     Buffer.from(serializedData),
   )
@@ -44,7 +44,7 @@ const download = async (privateKeyString, ipfsHash) => {
   const response = await fetch(url)
   const encryptedFile = await response.json()
 
-  const decryptedFile = await fileEncryptor.decrypt(
+  const decryptedFile = await fileCrypto.decrypt(
     privateKeyString,
     encryptedFile,
   )
