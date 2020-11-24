@@ -1,97 +1,84 @@
-import React from 'react'
-// imports for TextFields
+import DateFnsUtils from '@date-io/date-fns'
 import Box from '@material-ui/core/Box'
-import TextField from '@material-ui/core/TextField';
-//imports for upload
-import { useState } from 'react'
-import ipfs from '../../lib/IPFSClient'
+import Button from '@material-ui/core/Button'
+import TextField from '@material-ui/core/TextField'
+import {
+  KeyboardDatePicker, MuiPickersUtilsProvider
+} from '@material-ui/pickers'
+import 'date-fns'
+import React, { useState } from 'react'
+import { useIpfs } from '../../context/IpfsProvider'
 import { useUser } from '../../context/UserProvider'
-import { useContract } from '../../context/ContractProvider'
+import styles from './newEntry.module.css'
 
 const NewEntry = () => {
-  
-  // States from Upload
-  const [buffer, setBuffer] = useState(null)
-  const [hash, setHash] = useState('')
-  const [uploadSuccessful, setUploadSuccessful] = useState(false)
-  const { user } = useUser()
-  const { contract } = useContract()
+  const { user, allUsers } = useUser()
+  const ipfs = useIpfs()
 
-  // States 
-  const [edu, setEdu] = useState('')
+  // States
+  const [uploadSuccessful, setUploadSuccessful] = useState(false)
+  const [educationType, setEducationType] = useState('')
   const [title, setTitle] = useState('')
-  const [desc, setDesc] = useState('')
+  const [description, setDescription] = useState('')
   const [author, setAuthor] = useState('Hochschule Luzern')
-  const [date, setDate] = useState('')
-  const [doc, setDoc] = useState('')
+  const [publishDate, setPublishDate] = useState(new Date())
+  const [documentBuffer, setDocumentBuffer] = useState(null)
 
   const captureFile = (event) => {
     event.preventDefault()
-    let selectedFile = event.target.files;
-    let file = null;
-    let fileName = "";
-
-    //Check File is not Empty
-    if (selectedFile.length > 0) {
-        // Select the very first file from list
-        let fileToLoad = selectedFile[0];
-        fileName = fileToLoad.name;
-        // FileReader function for read the file.
-        let fileReader = new FileReader();
-        // Onload of file read the file content
-        fileReader.onload = function(fileLoadedEvent) {
-            file = fileLoadedEvent.target.result;
-            // Print data in console
-            //console.log(file);
-            setDoc(file)
-        };
-        // Convert data to base64
-        fileReader.readAsDataURL(fileToLoad);
-        console.log(doc)
+    const file = event.target.files[0]
+    const reader = new FileReader()
+    if (!file) return
+    reader.readAsArrayBuffer(file)
+    reader.onloadend = () => {
+      setDocumentBuffer(Buffer.from(reader.result))
     }
   }
 
-  const onSubmit = (event) => {
+  const onSubmit = async (event) => {
     event.preventDefault()
-    JSON.stringify({
-      "type": edu,
-      "title": title,
-      "description": desc,
-      "autor": author,
-      "publishDate": date,
-      "documents": doc
-    })
+    const educationData = {
+      type: educationType,
+      title: title,
+      description: description,
+      autor: author,
+      publishDate: publishDate,
+      document: documentBuffer,
+    };
+
+    // temporär bis user ausgewählt werden kann
+    const applicantPublicKey = allUsers[0].publicKey
+    const ipfsHash = await ipfs.upload(applicantPublicKey, educationData)
+    console.log(ipfsHash)
+    alert(`ipfs hash from uploaded document: ${ipfsHash}`)
   }
 
   return (
     <Box component='div'>
-    <h1>University Upload Page</h1>
+      <h1>University Upload Page</h1>
       <h3>Information</h3>
-      <form onSubmit={onSubmit}>
-        <TextField required id="standard-required1" label="Ausbildungstyp" fullWidth value={edu} onChange={event => setEdu(event.target.value)} />
-        &nbsp;
+      <form onSubmit={onSubmit} className={styles.formcontainer}>
+        <TextField required id="standard-required1" label="Ausbildungstyp" fullWidth value={educationType} onChange={event => setEducationType(event.target.value)} />
         <TextField required id="standard-required2" label="Titel" fullWidth value={title} onChange={event => setTitle(event.target.value)}  />
-        &nbsp;
-        <TextField id="standard-basic1" label="Beschreibung" fullWidth value={desc} onChange={event => setDesc(event.target.value)}  />
-        &nbsp;
+        <TextField id="standard-basic1" label="Beschreibung" fullWidth value={description} onChange={event => setDescription(event.target.value)}  />
         <TextField disabled id="standard-disabled1" label="Autor" fullWidth value={author} onChange={event => setAuthor(event.target.value)}  />
-        &nbsp;
-        <TextField required id="standard-required3" label="Publizierungsdatum" fullWidth value={date} onChange={event => setDate(event.target.value)}  />
-        &nbsp;&nbsp;
-        <h3>Certificate</h3>
-        <input required id="input1" type='file' onChange={captureFile}/>
-        &nbsp;&nbsp;
-        <h2>Upload</h2>
-        <input type='submit' value='Auf zur Blockchain' />
-    </form>
-    {uploadSuccessful ? (
+        <MuiPickersUtilsProvider utils={DateFnsUtils}>
+          <KeyboardDatePicker margin='normal' label='Publizierungsdatum' format='dd.MM.yyyy' value={publishDate} onChange={setPublishDate} fullWidth/>
+        </MuiPickersUtilsProvider>
+        <div>
+        <h4>Certificate</h4>
+          <input required type='file' onChange={captureFile} />
+        </div>
+        <br />
+        <Button variant="contained" color="primary" type="submit">Save</Button>
+      </form>
+      {uploadSuccessful ? (
         <Typography>Upload was successful!</Typography>
       ) : (
         <></>
       )}
-  </Box>
+    </Box>
   )
-
 }
 
 export default NewEntry
