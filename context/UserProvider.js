@@ -7,6 +7,7 @@ const UserContext = createContext(null)
 
 const UserProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null)
+  const [allUsers, setAllUsers] = useState([])
 
   const loadWeb3 = async () => {
     if (window.ethereum) {
@@ -33,6 +34,7 @@ const UserProvider = ({ children }) => {
 
   useEffect(() => {
     ;(async () => {
+      setAllUsers(users)
       await loadWeb3()
       await loadAccount()
       // setup listener for accounts change
@@ -43,7 +45,7 @@ const UserProvider = ({ children }) => {
   }, [])
 
   return (
-    <UserContext.Provider value={{ user: currentUser }}>
+    <UserContext.Provider value={{ user: currentUser, allUsers: allUsers }}>
       {children}
     </UserContext.Provider>
   )
