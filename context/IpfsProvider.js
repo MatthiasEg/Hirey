@@ -44,10 +44,19 @@ const download = async (privateKeyString, ipfsHash) => {
   const response = await fetch(url)
   const encryptedFile = await response.json()
 
-  const decryptedFile = await fileCrypto.decrypt(
-    privateKeyString,
-    encryptedFile,
-  )
+  var decryptedFile
+  try {
+    decryptedFile = await fileCrypto.decrypt(
+      privateKeyString,
+      encryptedFile,
+    )
+  } catch (err) {
+    if (err.message === 'Bad MAC') {
+      throw new Error("You're not permitted to access this file")
+    } else {
+      throw err
+    }
+  }
 
   return JSON.parse(decryptedFile.toString())
 }
