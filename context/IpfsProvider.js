@@ -1,5 +1,4 @@
 import { useContext, createContext } from 'react'
-import { useUser } from './UserProvider'
 import fileCrypto from '../lib/FileCrypto'
 import ipfs from '../lib/IPFSClient'
 
