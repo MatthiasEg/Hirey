@@ -184,21 +184,6 @@ const Shared = () => {
     })
   }
 
-  const onUnlock = (event, cvDocumentIndex) => {
-    event.preventDefault()
-    contract.methods
-    .unlockCVDocument(cvDocumentIndex)
-    .send({
-      from: user.address,
-    })
-    .then(() => {
-      console.log(
-        `successfully unlock: https://ipfs.infura.io/ipfs/${detailCVDocumentHash}`,
-      )
-    })
-  }
-
-
   // open and close expand with documents
   const handleExpandClick = (cvRecordIndex) => () => {
     const currentIndex = expanded.indexOf(cvRecordIndex)
