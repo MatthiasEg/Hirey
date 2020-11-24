@@ -7,8 +7,10 @@
     "start": "next start"
   },
   "dependencies": {
+    "@date-io/date-fns": "^1.3.13",
     "@material-ui/core": "^4.11.0",
     "@material-ui/icons": "^4.9.1",
+    "@material-ui/pickers": "^3.2.10",
     "babel-polyfill": "^6.26.0",
     "babel-preset-env": "^1.7.0",
     "babel-preset-es2015": "^6.24.1",
@@ -19,9 +21,9 @@
     "chai-as-promised": "^7.1.1",
     "chai-bignumber": "^3.0.0",
     "clsx": "^1.1.1",
+    "date-fns": "^2.16.1",
     "eccrypto": "^1.1.5",
     "ethereumjs-util": "^7.0.7",
-    "ethereumjs-wallet": "^1.0.1",
     "ipfs-http-client": "^48.0.0",
     "next": "^10.0.0",
     "pdfjs-dist": "^2.5.207",

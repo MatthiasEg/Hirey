@@ -7,7 +7,8 @@ import theme from '../style/theme'
 import Layout from '../components/Layout'
 import UserProvider from '../context/UserProvider'
 import ContractProvider from '../context/ContractProvider'
-import UploadProvider from '../context/UploadProvider'
+import IpfsProvider from '../context/IpfsProvider'
+// import UploadProvider from '../context/UploadProvider'
 
 export default function Hirey(props) {
   const { Component, pageProps } = props
@@ -26,13 +27,13 @@ export default function Hirey(props) {
         <CssBaseline />
         <UserProvider>
           <ContractProvider>
-            <UploadProvider>
+            <IpfsProvider>
               <Layout>
                 <Container maxWidth='md' fixed>
                   <Component {...pageProps} />
                 </Container>
               </Layout>
-            </UploadProvider>
+            </IpfsProvider>
           </ContractProvider>
         </UserProvider>
       </ThemeProvider>
