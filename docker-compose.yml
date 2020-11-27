@@ -1,0 +1,11 @@
+version: '3.8'
+
+services:
+    hirey_webapp:
+        build: ./
+        container_name: "hirey_webapp"
+        environment:
+            - NODE_ENV=production
+        ports:
+            - 80:3000
+
