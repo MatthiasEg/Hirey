@@ -30,8 +30,8 @@ import { useContract } from '../../context/ContractProvider'
 import { useUser } from '../../context/UserProvider'
 import Avatar from '@material-ui/core/Avatar'
 import Chip from '@material-ui/core/Chip'
-import ipfs from '../../lib/IPFSClient'
 import { render } from 'react-dom'
+import { useIpfs } from '../../context/IpfsProvider'
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.js`
 
@@ -88,8 +88,9 @@ const useStyles = makeStyles((theme) => ({
 
 const Shared = () => {
   // Providers
-  const { user } = useUser()
+  const { user, allUsers } = useUser()
   const { contract } = useContract()
+  const ipfs = useIpfs()
   const classes = useStyles()
   // States
   const [cvDocuments, setCVDocuments] = useState([])
@@ -99,6 +100,7 @@ const Shared = () => {
   const [detailCVDocumentIndex, setDetailCVDocumentIndex] = useState(0)
   const [expanded, setExpanded] = useState([])
   const [targetAccount, setTargetAccount] = useState('')
+  const [isLoading, setIsLoading] = useState(true)
   // Const
   const pageNumber = 1
 
@@ -122,15 +124,25 @@ const Shared = () => {
             from: user.address,
           })
         const sender = cvDocument[0]
-        const hash = cvDocument[1]
-        await fetch(`https://ipfs.infura.io/ipfs/${hash}`)
-          .then((response) => response.json())
-          .then((jsonData) => {
-            jsonData.sender = sender
-            jsonData.sharedTo = []
-            newCVDocuments.push(jsonData)
-            newCVDocumentHashes.push(hash)
-          })
+        const ipfsHash = cvDocument[1]
+
+        console.log(sender)
+
+        const senderUser = allUsers.find((u) => u.address == sender)
+        const result = await ipfs.download(
+          user.privateKey,
+          senderUser.publicKey,
+          ipfsHash,
+        )
+        if (!result.sender) {
+          result.sender = sender
+        }
+
+        result.sharedTo = []
+        newCVDocuments.push(result)
+        newCVDocumentHashes.push(ipfsHash)
+
+        console.log(result)
 
         const nbrOfSharedToAddresses = await contract.methods
           .getNbrOfSharedTo(cvDocumentHashIndex)
@@ -157,6 +169,7 @@ const Shared = () => {
         setDetailCVDocumentHash(newCVDocumentHashes[0])
         setDetailCVDocumentIndex(0)
       }
+      setIsLoading(false)
     }
   }
 
@@ -183,9 +196,6 @@ const Shared = () => {
         const newCvDocuments = [...cvDocuments]
         newCvDocuments[detailCVDocumentIndex].sharedTo.push(targetAccount)
         setCVDocuments(newCvDocuments)
-        console.log(
-          `successfully shares: https://ipfs.infura.io/ipfs/${detailCVDocumentHash}`,
-        )
       })
   }
 
@@ -209,174 +219,172 @@ const Shared = () => {
 
   return (
     <Box component='div'>
-      {cvDocuments.length > 0 ? (
-        <>
-          <Grid container className={classes.grid} spacing={3}>
-            {/* LEFT SIDE */}
-            <Grid item xs={4}>
-              <List dense className={classes.list}>
-                {cvDocuments.map((cvDocument, cvDocumentIndex) => {
-                  return (
-                    <ListItem
-                      key={cvDocumentIndex}
-                      onClick={handleClickedCVDocument(cvDocumentIndex)}
-                      className={classes.listItem}
-                      button
-                    >
-                      <ListItemText
-                        primary={cvDocument.title}
-                        secondary={cvDocument.name}
-                      />
-                    </ListItem>
-                  )
-                })}
-              </List>
-            </Grid>
-
-            {/* RIGHT SIDE */}
-            <Grid item xs={8}>
-              {detailCVDocument != null &&
-              detailCVDocument.records.length > 0 ? (
-                <>
-                  <Card className={classes.headerCard}>
-                    <CardHeader
-                      title={detailCVDocument.title}
-                      subheader={`by ${detailCVDocument.name} | Number of Records: ${detailCVDocument.records.length}`}
-                    />
-                    <CardContent>
-                      <Box
-                        component='div'
-                        className={classes.sharedToContainer}
-                      >
-                        <Box
-                          component='div'
-                          className={classes.sharedToContainerTitle}
+      {!isLoading ? (
+        <Box>
+          {cvDocuments.length > 0 ? (
+            <>
+              <Grid container className={classes.grid} spacing={3}>
+                {/* LEFT SIDE */}
+                <Grid item xs={4}>
+                  <List dense className={classes.list}>
+                    {cvDocuments.map((cvDocument, cvDocumentIndex) => {
+                      return (
+                        <ListItem
+                          key={cvDocumentIndex}
+                          onClick={handleClickedCVDocument(cvDocumentIndex)}
+                          className={classes.listItem}
+                          button
                         >
-                          Shared to:
-                        </Box>
-                        <Box
-                          component='div'
-                          className={classes.sharedToContainerContent}
-                        >
-                          {detailCVDocument.sharedTo.map(
-                            (sharedToAdresse, sharedToAdresseIndex) => {
-                              return (
-                                <Chip
-                                  size='small'
-                                  label={sharedToAdresse}
-                                  color='secondary'
-                                  key={sharedToAdresseIndex}
-                                />
-                              )
-                            },
-                          )}
-                        </Box>
-                      </Box>
-
-                      <Box component='div'>
-                        <form onSubmit={onShare}>
-                          <TextField
-                            onChange={(event) =>
-                              setTargetAccount(event.target.value)
-                            }
-                            className={classes.targetAccountTextField}
-                            label='Share for AccountId'
-                            required
-                            InputProps={{
-                              startAdornment: (
-                                <InputAdornment position='start'>
-                                  <AccountCircle />
-                                </InputAdornment>
-                              ),
-                            }}
+                          <ListItemText
+                            primary={cvDocument.title}
+                            secondary={cvDocument.name}
                           />
-                          <Button
-                            type='submit'
-                            variant='contained'
-                            color='secondary'
-                          >
-                            Share
-                          </Button>
-                        </form>
-                      </Box>
-                    </CardContent>
-                  </Card>
+                        </ListItem>
+                      )
+                    })}
+                  </List>
+                </Grid>
 
-                  {detailCVDocument.records.map((cvRecord, cvRecordIndex) => {
-                    return (
-                      <Card className={classes.detailCard} key={cvRecordIndex}>
+                {/* RIGHT SIDE */}
+                <Grid item xs={8}>
+                  {detailCVDocument != null &&
+                  detailCVDocument.records.length > 0 ? (
+                    <>
+                      <Card className={classes.headerCard}>
                         <CardHeader
-                          title={cvRecord.title}
-                          subheader={`by ${cvRecord.autor} | publish date: ${cvRecord.publishDate}`}
+                          title={detailCVDocument.title}
+                          subheader={`by ${detailCVDocument.name} | Number of Records: ${detailCVDocument.records.length}`}
                         />
                         <CardContent>
-                          {cvRecord.type === 'Anstellung' && (
-                            <Typography variant='subtitle1' component='p'>
-                              From: {cvRecord.from} To: {cvRecord.to}
-                            </Typography>
-                          )}
-                          <Typography variant='body2' component='p'>
-                            {cvRecord.description}
-                          </Typography>
-                        </CardContent>
-                        <Divider light />
-                        <CardActions disableSpacing>
-                          {cvRecord.documents.length > 0 && (
-                            <IconButton
-                              className={clsx(classes.expand, {
-                                [classes.expandOpen]: expanded.includes(
-                                  cvRecordIndex,
-                                ),
-                              })}
-                              onClick={handleExpandClick(cvRecordIndex)}
-                              aria-expanded={expanded.includes(cvRecordIndex)}
-                              aria-label='show documents'
+                          <Box
+                            component='div'
+                            className={classes.sharedToContainer}
+                          >
+                            <Box
+                              component='div'
+                              className={classes.sharedToContainerTitle}
                             >
-                              <ExpandMoreIcon />
-                            </IconButton>
-                          )}
-                        </CardActions>
-                        <Collapse
-                          in={expanded.includes(cvRecordIndex)}
-                          timeout='auto'
-                          unmountOnExit
-                        >
-                          <CardContent>
-                            <Typography paragraph>Documents</Typography>
-                            {cvRecord.documents.map(
-                              (documentHash, documentIndex) => {
-                                return (
-                                  <Box component='div' key={documentIndex}>
-                                    <p>
-                                      Document Link:
-                                      https://ipfs.infura.io/ipfs/
-                                      {documentHash}
-                                    </p>
-                                    <Document
-                                      file={`https://ipfs.infura.io/ipfs/${documentHash}`}
-                                    >
+                              Shared to:
+                            </Box>
+                            <Box
+                              component='div'
+                              className={classes.sharedToContainerContent}
+                            >
+                              {detailCVDocument.sharedTo.map(
+                                (sharedToAdresse, sharedToAdresseIndex) => {
+                                  return (
+                                    <Chip
+                                      size='small'
+                                      label={sharedToAdresse}
+                                      color='secondary'
+                                      key={sharedToAdresseIndex}
+                                    />
+                                  )
+                                },
+                              )}
+                            </Box>
+                          </Box>
+
+                          <Box component='div'>
+                            <form onSubmit={onShare}>
+                              <TextField
+                                onChange={(event) =>
+                                  setTargetAccount(event.target.value)
+                                }
+                                className={classes.targetAccountTextField}
+                                label='Share for AccountId'
+                                required
+                                InputProps={{
+                                  startAdornment: (
+                                    <InputAdornment position='start'>
+                                      <AccountCircle />
+                                    </InputAdornment>
+                                  ),
+                                }}
+                              />
+                              <Button
+                                type='submit'
+                                variant='contained'
+                                color='secondary'
+                              >
+                                Share
+                              </Button>
+                            </form>
+                          </Box>
+                        </CardContent>
+                      </Card>
+
+                      {detailCVDocument.records.map(
+                        (cvRecord, cvRecordIndex) => {
+                          return (
+                            <Card
+                              className={classes.detailCard}
+                              key={cvRecordIndex}
+                            >
+                              <CardHeader
+                                title={cvRecord.title}
+                                subheader={`by ${cvRecord.autor} | publish date: ${cvRecord.publishDate}`}
+                              />
+                              <CardContent>
+                                {cvRecord.type === 'Anstellung' && (
+                                  <Typography variant='subtitle1' component='p'>
+                                    From: {cvRecord.from} To: {cvRecord.to}
+                                  </Typography>
+                                )}
+                                <Typography variant='body2' component='p'>
+                                  {cvRecord.description}
+                                </Typography>
+                              </CardContent>
+                              <Divider light />
+                              <CardActions disableSpacing>
+                              <Typography paragraph>Document</Typography>
+                                <IconButton
+                                  className={clsx(classes.expand, {
+                                    [classes.expandOpen]: expanded.includes(
+                                      cvRecordIndex,
+                                    ),
+                                  })}
+                                  onClick={handleExpandClick(cvRecordIndex)}
+                                  aria-expanded={expanded.includes(
+                                    cvRecordIndex,
+                                  )}
+                                  aria-label='show documents'
+                                >
+                                  <ExpandMoreIcon />
+                                </IconButton>
+                              </CardActions>
+                              <Collapse
+                                in={expanded.includes(cvRecordIndex)}
+                                timeout='auto'
+                                unmountOnExit
+                              >
+                                <CardContent>
+                                  <Box component='div'>
+                                    <Document file={cvRecord.document}>
                                       <Page pageNumber={pageNumber} />
                                     </Document>
                                   </Box>
-                                )
-                              },
-                            )}
-                          </CardContent>
-                        </Collapse>
-                      </Card>
-                    )
-                  })}
+                                </CardContent>
+                              </Collapse>
+                            </Card>
+                          )
+                        },
+                      )}
 
-                  {/* Fallback Detail*/}
-                </>
-              ) : (
-                <>No CV Document selected!</>
-              )}
-            </Grid>
-          </Grid>
+                      {/* Fallback Detail*/}
+                    </>
+                  ) : (
+                    <>No CV Document selected!</>
+                  )}
+                </Grid>
+              </Grid>
 
-          {/* Fallback Page*/}
-        </>
+              {/* Fallback Page*/}
+            </>
+          ) : (
+            <>Keine CV Records gefunden.</>
+          )}
+        </Box>
       ) : (
         <Grid container className={classes.grid} spacing={3} justify='center'>
           <CircularProgress color='primary' variant='indeterminate' size={70} />
