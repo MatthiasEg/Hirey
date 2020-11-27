@@ -40,6 +40,7 @@ const UserProvider = ({ children }) => {
       // setup listener for accounts change
       window.ethereum.on('accountsChanged', () => {
         loadAccount()
+        window.location = '/'
       })
     })()
   }, [])
