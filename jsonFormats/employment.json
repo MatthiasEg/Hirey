@@ -6,5 +6,6 @@
   "from": "bla",
   "to": "bla",
   "publishDate": "bla",
-  "documents": ["filebuffer"]
+  "document": "file buffer",
+  "sender": "sender address"
 }
