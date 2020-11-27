@@ -18,14 +18,19 @@ const IpfsProvider = (props) => {
 export const useIpfs = () => useContext(IpfsContext)
 export default IpfsProvider
 
-const upload = async (publicKeyString, data) => {
-  if (typeof publicKeyString !== 'string') {
-    throw Error('public key ist not a string!')
+const upload = async (publicKeyStringRecipient, privateKeyStringSender, data) => {
+  if (typeof publicKeyStringRecipient !== 'string') {
+    throw Error('recipient public key ist not a string!')
   }
+  if (typeof privateKeyStringSender !== 'string') {
+    throw Error('sender private key ist not a string!')
+  }
+
+  data["signature"] = await fileCrypto.sign(privateKeyStringSender, data)
 
   const serializedData = JSON.stringify(data)
   const encryptedData = await fileCrypto.encrypt(
-    publicKeyString,
+    publicKeyStringRecipient,
     Buffer.from(serializedData),
   )
   const ipfsResponse = await ipfs.add(JSON.stringify(encryptedData))
@@ -34,7 +39,7 @@ const upload = async (publicKeyString, data) => {
 }
 
 
-const download = async (privateKeyString, ipfsHash) => {
+const download = async (privateKeyStringRecipient, publicKeyStringSender, ipfsHash) => {
   if (typeof ipfsHash !== 'string') {
     throw Error('ipfs hash must be a string!')
   }
@@ -43,12 +48,20 @@ const download = async (privateKeyString, ipfsHash) => {
   const response = await fetch(url)
   const encryptedFile = await response.json()
 
-  var decryptedFile
   try {
-    decryptedFile = await fileCrypto.decrypt(
-      privateKeyString,
+    var decryptedFile = await fileCrypto.decrypt(
+      privateKeyStringRecipient,
       encryptedFile,
     )
+
+    var decryptedFileJson = JSON.parse(decryptedFile.toString())
+    const signatureJson = newData.signature
+    delete decryptedFileCopy.signature
+
+    if (await fileCrypto.verify(publicKeyStringSender, decryptedFileJson, signatureJson.data)) {
+      return decryptedFileJson
+    }
+    throw Error('invalid signature of document')
   } catch (err) {
     if (err.message === 'Bad MAC') {
       throw new Error("You're not permitted to access this file")
@@ -56,6 +69,4 @@ const download = async (privateKeyString, ipfsHash) => {
       throw err
     }
   }
-
-  return JSON.parse(decryptedFile.toString())
 }
