@@ -38,8 +38,9 @@ const UserProvider = ({ children }) => {
       await loadWeb3()
       await loadAccount()
       // setup listener for accounts change
-      window.ethereum.on('accountsChanged', () => {
-        loadAccount()
+      window.ethereum.on('accountsChanged', async () => {
+        await loadAccount()
+        window.location = '/'
       })
     })()
   }, [])
