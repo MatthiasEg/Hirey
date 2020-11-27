@@ -55,8 +55,8 @@ const download = async (privateKeyStringRecipient, publicKeyStringSender, ipfsHa
     )
 
     var decryptedFileJson = JSON.parse(decryptedFile.toString())
-    const signatureJson = newData.signature
-    delete decryptedFileCopy.signature
+    const signatureJson = decryptedFileJson.signature
+    delete decryptedFileJson.signature
 
     if (await fileCrypto.verify(publicKeyStringSender, decryptedFileJson, signatureJson.data)) {
       return decryptedFileJson
