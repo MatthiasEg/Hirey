@@ -245,6 +245,7 @@ const Read = () => {
                     >
                     <ListItemText
                       primary='LOCKED'
+                      secondary={cvDocument.sender}
                     />
                     </ListItem>
                   ) 
