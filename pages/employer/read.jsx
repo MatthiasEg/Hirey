@@ -121,13 +121,14 @@ const Read = () => {
         .call({
           from: user.address,
         })
+
+        const cvDocument = await contract.methods
+        .getCvDocumentHash(cvDocumentHashIndex)
+        .call({
+          from: user.address,
+        })
+        const sender = cvDocument[0]
         if(isUnlocked) {
-          const cvDocument = await contract.methods
-          .getCvDocumentHash(cvDocumentHashIndex)
-          .call({
-            from: user.address,
-          })
-          const sender = cvDocument[0]
           const hash = cvDocument[1]
           await fetch(`https://ipfs.infura.io/ipfs/${hash}`)
             .then((response) => response.json())
@@ -137,8 +138,9 @@ const Read = () => {
             newCVDocuments.push(jsonData)
             newCVDocumentHashes.push(hash)
           })
+          console.log(`https://ipfs.infura.io/ipfs/${hash}`)
         } else {
-          newCVDocuments.push({unlocked: false, records: []})
+          newCVDocuments.push({unlocked: false, sender: sender, records: []})
           newCVDocumentHashes.push('')
         }
       }
@@ -244,8 +246,8 @@ const Read = () => {
                     button
                     >
                     <ListItemText
-                      primary='LOCKED'
-                      secondary={cvDocument.sender}
+                      primary='LOCKED' 
+                      secondary={`${cvDocument.sender.substring(0, 25)}...`}
                     />
                     </ListItem>
                   ) 
@@ -255,7 +257,7 @@ const Read = () => {
 
             {/* RIGHT SIDE */}
             <Grid item xs={8}>
-              {detailCVDocument != null && detailCVDocument.records.length > 0 ? (
+              {detailCVDocument != null && detailCVDocument.records !=null && detailCVDocument.records.length > 0 ? (
                 <>
                   {detailCVDocument.records.map((cvRecord, cvRecordIndex) => {
                     return (
