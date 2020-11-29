@@ -92,7 +92,7 @@ const NewEntry = () => {
       document: documentBuffer,
     };
     // console output
-    console.log(educationData);
+    // console.log(educationData);
 
     const ipfsHash = await ipfs.upload(recipient.publicKey, user.privateKey, educationData)
     console.log(`IPFS hash from upload: ${ipfsHash}`)
@@ -133,12 +133,12 @@ const NewEntry = () => {
               value={workType || ''}
               onChange={event => setworkType(event.target.value)}
             >
-              <MenuItem value="Lehre EBA">Vollzeit</MenuItem>
-              <MenuItem value="Lehre EFZ">Teilzeit</MenuItem>
-              <MenuItem value="Lehre Bachelor">Stundenlohn</MenuItem>
-              <MenuItem value="Lehre Master">Praktikum</MenuItem>
-              <MenuItem value="Lehre Weiterbildung">Lehre</MenuItem>
-              <MenuItem value="Lehre Kurs">Externer Mitarbeiter</MenuItem>
+              <MenuItem value="Vollzeit">Vollzeit</MenuItem>
+              <MenuItem value="Teilzeit">Teilzeit</MenuItem>
+              <MenuItem value="Stundenlohn">Stundenlohn</MenuItem>
+              <MenuItem value="Praktikum">Praktikum</MenuItem>
+              <MenuItem value="Lehre">Lehre</MenuItem>
+              <MenuItem value="Externer Mitarbeiter">Externer Mitarbeiter</MenuItem>
             </Select>
         </FormControl>
         <FormControl fullWidth={true}>
@@ -168,7 +168,7 @@ const NewEntry = () => {
           </FormControl>
         </Grid>
         <div>
-        <h4>Arbeitszeugnis/-bescheinigung </h4>
+        <h4>Arbeitszeugnis /-bescheinigung </h4>
           {/* <input required type='file' onChange={captureFile} /> */}
           <label htmlFor="upload-photo">
             <input style={{ display: 'none' }} id="upload-photo" name="upload-photo" required type="file" onChange={captureFile} />
