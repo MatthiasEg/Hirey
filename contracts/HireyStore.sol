@@ -12,16 +12,13 @@ contract HireyStore {
   struct CVDocument {
     address author;
     string documentHash;
-    bool isUnlocked;
+    bool isUnlocked; 
+    address[] sharedTo;
   }
 
   address payable public contractCreatorAddress;
   mapping(address => CVRecord[]) cvRecordHashes;
-  mapping(address => uint) nbrOfCvRecordHashes;
   mapping(address => CVDocument[]) cvDocumentHashes;
-  mapping(address => uint) nbrOfCvDocumentHashes;
-  mapping(address => mapping(uint => address[])) sharedTo;
-  mapping(address => mapping(uint => uint)) nbrOfSharedTo;
 
   constructor() public {
     contractCreatorAddress = msg.sender;
@@ -31,15 +28,13 @@ contract HireyStore {
   // welche vom Sender signiert und mit dem Public-Key des Bewerbers verschlüsselt wurde. Der Hash wurde mit dem HIREY-System Public-Key verschlüsselt. 
   function storeCvRecordFor(address _applicantAccount, string memory _cvRecordHash) public {
     cvRecordHashes[_applicantAccount].push(CVRecord({author: msg.sender, documentHash: _cvRecordHash}));
-    nbrOfCvRecordHashes[_applicantAccount] = nbrOfCvRecordHashes[_applicantAccount] + 1;
   }
 
   // Ein Bewerber kann einen _cvDocumentHash für sich selbst speichern. Die Datei auf IPFS enthält mehere cvRecords. 
   // Die cvRecords wurden vom ursprünglichen Sender signiert. Gespeichert ist das cvDocument hier ebenfalls mit dem Public-Key des Bewerbers.
   // Der Hash wurde mit dem HIREY-System Public-Key verschlüsselt.   
   function storeCVDocument(string memory _cvDocumentHash) public {
-    cvDocumentHashes[msg.sender].push(CVDocument({author: msg.sender, documentHash: _cvDocumentHash, isUnlocked: true}));
-    nbrOfCvDocumentHashes[msg.sender] = nbrOfCvDocumentHashes[msg.sender] + 1;
+    cvDocumentHashes[msg.sender].push(CVDocument({author: msg.sender, documentHash: _cvDocumentHash, isUnlocked: true, sharedTo: new address[](0)}));
   }
 
   // Bewerber kann seine CVDocumente für HR-Abteilungen freigeben. Die HR-Abteilung muss den Eintrag dann mit Eth freischalten (unlock=True).
@@ -48,13 +43,11 @@ contract HireyStore {
   function shareCVDocument(address _targetAccount, uint cvDocumentIndex, string memory _cvDocumentHash) public {
     require(_targetAccount != msg.sender); // Um ein Dokument für dich selber zu speichern muss mann storeCVDocument verwenden
     // das Dokument dass man freigibt muss auch existieren     
-    require(nbrOfCvDocumentHashes[msg.sender] > cvDocumentIndex); 
+    require(cvDocumentHashes[msg.sender].length > cvDocumentIndex); 
     require(bytes(cvDocumentHashes[msg.sender][cvDocumentIndex].documentHash).length  > 0);
 
-    cvDocumentHashes[_targetAccount].push(CVDocument({author: msg.sender, documentHash: _cvDocumentHash, isUnlocked: false}));
-    sharedTo[msg.sender][cvDocumentIndex].push(_targetAccount);
-    nbrOfSharedTo[msg.sender][cvDocumentIndex] = nbrOfSharedTo[msg.sender][cvDocumentIndex] + 1;
-    nbrOfCvDocumentHashes[_targetAccount] = nbrOfCvDocumentHashes[_targetAccount] + 1;
+    cvDocumentHashes[_targetAccount].push(CVDocument({author: msg.sender, documentHash: _cvDocumentHash, isUnlocked: false, sharedTo: new address[](0)}));
+    cvDocumentHashes[msg.sender][cvDocumentIndex].sharedTo.push(_targetAccount);
   }
 
   // Die HR-Abteilungen bezahlen für das Anschauen der CVDokumente einmalig. Daher müssen sie das Dokument initial freischalten. 
@@ -67,15 +60,15 @@ contract HireyStore {
   }
 
   function getNbrOfCvRecordHashes() public view returns (uint) {
-    return nbrOfCvRecordHashes[msg.sender];
+    return cvRecordHashes[msg.sender].length;
   }
 
   function getCvRecordHash(uint cvRecordIndex) public view returns (address, string memory) {
     return (cvRecordHashes[msg.sender][cvRecordIndex].author, cvRecordHashes[msg.sender][cvRecordIndex].documentHash);
   }
   
-  function getNbrOfCvDocumentHashes() public view returns (uint) {
-    return nbrOfCvDocumentHashes[msg.sender];
+  function getNbrOfCvDocumentHashes() public view returns (uint count) {
+    return cvDocumentHashes[msg.sender].length;
   }
   
   // Der CVDocumentHash kann immer Abgefragt werden. Dieser wird einfach nicht vom System entschlüsselt, wenn er nicht freigeschaltet ist. 
@@ -88,10 +81,10 @@ contract HireyStore {
   }
 
   function getNbrOfSharedTo(uint cvDocumentIndex) public view returns (uint) {
-    return nbrOfSharedTo[msg.sender][cvDocumentIndex];
+    return cvDocumentHashes[msg.sender][cvDocumentIndex].sharedTo.length;
   }
 
   function getSharedTo(uint cvDocumentIndex, uint sharedToIndex) public view returns (address) {
-    return sharedTo[msg.sender][cvDocumentIndex][sharedToIndex];
+    return cvDocumentHashes[msg.sender][cvDocumentIndex].sharedTo[sharedToIndex];
   }
 }
