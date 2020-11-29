@@ -45,8 +45,10 @@ const NewEntry = () => {
 
   const captureFile = (event) => {
     event.preventDefault()
+    //const file = event.target.files
     const file = event.target.files[0]
-    const reader = new FileReader()
+    const reader = new window.FileReader()
+    // const reader = new FileReader()
     if (!file) return
     reader.readAsArrayBuffer(file)
     reader.onloadend = () => {
@@ -82,6 +84,8 @@ const NewEntry = () => {
       publishDate: publishDate,
       document: documentBuffer,
     };
+    // console output
+    // console.log(educationData);
 
     const ipfsHash = await ipfs.upload(recipient.publicKey, user.privateKey, educationData)
     console.log(`IPFS hash from upload: ${ipfsHash}`)
@@ -116,13 +120,26 @@ const NewEntry = () => {
           </Select>
         </FormControl>
         <FormControl fullWidth={true}>
-          <TextField required id="standard-required1" label="Ausbildungstyp" fullWidth value={educationType} onChange={event => setEducationType(event.target.value)} />
+          <InputLabel>Ausbildungstyp</InputLabel>
+            <Select
+              required
+              value={educationType || ''}
+              onChange={event => setEducationType(event.target.value)}
+            >
+              <MenuItem value="Lehre EBA">Lehre EBA</MenuItem>
+              <MenuItem value="Lehre EFZ">Lehre EFZ</MenuItem>
+              <MenuItem value="Lehre Bachelor">Bachelor</MenuItem>
+              <MenuItem value="Lehre Master">Master</MenuItem>
+              <MenuItem value="Lehre Weiterbildung">Weiterbildung</MenuItem>
+              <MenuItem value="Lehre Kurs">Kurs</MenuItem>
+            </Select>
+         {/* <TextField required id="standard-required1" label="Ausbildungstyp" fullWidth value={educationType} onChange={event => setEducationType(event.target.value)} /> */}
         </FormControl>
         <FormControl fullWidth={true}>
           <TextField required id="standard-required2" label="Titel" fullWidth value={title} onChange={event => setTitle(event.target.value)}  />
         </FormControl>
         <FormControl fullWidth={true}>
-          <TextField id="standard-basic1" label="Beschreibung" fullWidth value={description} onChange={event => setDescription(event.target.value)}  />
+          <TextField id="standard-basic1" label="Beschreibung (mehrere Zeilen m&ouml;glich)" multiline fullWidth value={description} onChange={event => setDescription(event.target.value)}  />
         </FormControl>
         <FormControl fullWidth={true}>
           <TextField disabled id="standard-disabled1" label="Autor" fullWidth value={author} onChange={event => setAuthor(event.target.value)}  />
@@ -133,8 +150,14 @@ const NewEntry = () => {
           </MuiPickersUtilsProvider>
         </FormControl>
         <div>
-        <h4>Certificate</h4>
-          <input required type='file' onChange={captureFile} />
+        <h4>Zertifikat</h4>
+          {/* <input required type='file' onChange={captureFile} /> */}
+          <label htmlFor="upload-photo">
+            <input style={{ display: 'none' }} id="upload-photo" name="upload-photo" required type="file" onChange={captureFile} />
+          <Button color="secondary" variant="contained" component="span">
+            Datei auswählen
+          </Button>
+          </label>
         </div>
         <br />
         <div style={buttonLoadingStyle}>
