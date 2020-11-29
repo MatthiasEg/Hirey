@@ -78,13 +78,22 @@ const NavigationBasis = () => {
   }
 
   const RoleSpecificRoutes = () => {
-    if (user.name === 'employer') {
-      return <EmployerRoutes />
+    if (user) {
+      if (user.address === '0xa643664FBB17124B881cf5c757D68cEb9E39b577') {
+        return <EmployerRoutes />
+      }
+      if (
+        user.address === '0xd0C193a3a9A6A0ba12f9FCAa16d1F1702f0760Bb' ||
+        user.address === '0x5A0ae00a7f472F79C12886B14D9d1dA7C285E5D0' ||
+        user.address === '0x336326C6e975FF26FFffb0948af8b8424741678a'
+      ) {
+        return <ApplicantRoutes />
+      }
+  
+      return <UniversityRoutes />
     }
-    if (user.name === 'applicant') {
-      return <ApplicantRoutes />
-    }
-    return <UniversityRoutes />
+
+    return null
   }
 
   return (

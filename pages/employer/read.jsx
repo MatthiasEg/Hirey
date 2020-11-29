@@ -13,6 +13,7 @@ import TextField from '@material-ui/core/TextField'
 import Button from '@material-ui/core/Button'
 import InputAdornment from '@material-ui/core/InputAdornment'
 import AccountCircle from '@material-ui/icons/AccountCircle'
+import CircularProgress from '@material-ui/core/CircularProgress'
 import Box from '@material-ui/core/Box'
 import Card from '@material-ui/core/Card'
 import CardActions from '@material-ui/core/CardActions'
@@ -324,7 +325,9 @@ const Read = () => {
           {/* Fallback Page*/}
         </>
       ) : (
-        <>No Cv Records found!</>
+        <Grid container className={classes.grid} spacing={3} justify='center'>
+          <CircularProgress color='primary' variant='indeterminate' size={70} />
+        </Grid>
       )}
     </Box>
   )

@@ -4,5 +4,6 @@
   "description": "bla",
   "autor": "bla",
   "publishDate": "bla",
-  "documents": ["filebuffer"]
+  "document": "file buffer",
+  "sender": "sender address"
 }
