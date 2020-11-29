@@ -76,8 +76,8 @@ contract HireyStore {
     return nbrOfCvDocumentHashes[msg.sender];
   }
   
+  // Der CVDocumentHash kann immer Abgefragt werden. Dieser wird einfach nicht vom System entschlüsselt, wenn er nicht freigeschaltet ist. 
   function getCvDocumentHash(uint cvDocumentIndex) public view returns (address, string memory) {
-    require(cvDocumentHashes[msg.sender][cvDocumentIndex].isUnlocked);
     return (cvDocumentHashes[msg.sender][cvDocumentIndex].author, cvDocumentHashes[msg.sender][cvDocumentIndex].documentHash);
   }
 
