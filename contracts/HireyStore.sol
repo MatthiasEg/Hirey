@@ -47,7 +47,9 @@ contract HireyStore {
   // cvRecords. Die cvRecords und das gesamte Dokument wurde mit dem Public-Key der HR-Abteilung verschlüsselt. Der Hash wurde mit dem HIREY-System Public-Key verschlüsselt. 
   function shareCVDocument(address _targetAccount, uint cvDocumentIndex, string memory _cvDocumentHash) public {
     require(_targetAccount != msg.sender); // Um ein Dokument für dich selber zu speichern muss mann storeCVDocument verwenden
-    require(bytes(cvDocumentHashes[msg.sender][cvDocumentIndex].documentHash).length  > 0); // das Dokument dass man freigibt muss auch existieren 
+    // das Dokument dass man freigibt muss auch existieren     
+    require(nbrOfCvDocumentHashes[msg.sender] > cvDocumentIndex); 
+    require(bytes(cvDocumentHashes[msg.sender][cvDocumentIndex].documentHash).length  > 0);
 
     cvDocumentHashes[_targetAccount].push(CVDocument({author: msg.sender, documentHash: _cvDocumentHash, isUnlocked: false}));
     sharedTo[msg.sender][cvDocumentIndex].push(_targetAccount);

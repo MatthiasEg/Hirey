@@ -12,10 +12,10 @@ contract('HireyStore', (accounts) => {
   cvRecordHashTwo = '7777reerefkjfwjhe32399393442'
   cvDocumentHashOne = 'fdfsd35fdfggdf4df34453rfdgr'
   cvDocumentHashTwo = '45esadfer234fsdfodfjn652342'
-  contractCreatorAccount = accounts[0]
-  applicantAccount = accounts[1]
-  applicantAccountOther = accounts[2]
-  humanResourcesAccount = accounts[3]
+  contractCreatorAccount = accounts[3]
+  applicantAccount = accounts[0]
+  applicantAccountOther = accounts[1]
+  humanResourcesAccount = accounts[2]
   employerAccount = accounts[4]
   schoolAccount = accounts[5]
 
@@ -91,7 +91,23 @@ contract('HireyStore', (accounts) => {
   
   describe('storage cv document for humanResourcesAccount', async () => {
 
-    it('store cv document hash for humanResourcesAccount', async () => {
+    it('share not existing cv document hash for humanResourcesAccount', async () => {
+      assert.equal(0,  await hireyStore.getNbrOfCvDocumentHashes({from: humanResourcesAccount}))
+      assert.equal(0,  await hireyStore.getNbrOfCvDocumentHashes({from: applicantAccount}))
+
+      try {
+        await hireyStore.shareCVDocument(humanResourcesAccount, 0, cvDocumentHashOne, {from: applicantAccount})
+        assert(false, "Expected an error but did not get one");
+      }
+      catch (error) {
+        const expectedMessage = "Returned error: VM Exception while processing transaction: revert"
+        assert(error.message.startsWith(expectedMessage), "Expected an error starting with '" + expectedMessage + "' but got '" + error.message + "' instead");
+      }
+    })
+
+    it('share existing cv document hash for humanResourcesAccount', async () => {
+      await hireyStore.storeCVDocument(cvDocumentHashOne, {from: applicantAccount})
+      assert.equal(1,  await hireyStore.getNbrOfCvDocumentHashes({from: applicantAccount}))
       assert.equal(0,  await hireyStore.getNbrOfCvDocumentHashes({from: humanResourcesAccount}))
 
       await hireyStore.shareCVDocument(humanResourcesAccount, 0, cvDocumentHashOne, {from: applicantAccount})
@@ -101,17 +117,12 @@ contract('HireyStore', (accounts) => {
 
     it('read locked cv document hash for humanResourcesAccount', async () => {
       assert.equal(1, await hireyStore.getNbrOfCvDocumentHashes({from: humanResourcesAccount}))
-      
-      try {
-        let isUnlocked = await hireyStore.isCvDocumentUnlocked(0, {from: humanResourcesAccount})
-        assert(!isUnlocked, "Expected unlocked cv document!");
-        await hireyStore.getCvDocumentHash(0, {from: humanResourcesAccount})
-        assert(false, "Expected an error but did not get one");
-      }
-      catch (error) {
-        const expectedMessage = "Returned error: VM Exception while processing transaction: revert"
-        assert(error.message.startsWith(expectedMessage), "Expected an error starting with '" + expectedMessage + "' but got '" + error.message + "' instead");
-      }
+      let isUnlocked = await hireyStore.isCvDocumentUnlocked(0, {from: humanResourcesAccount})
+      assert(!isUnlocked, "Expected unlocked cv document!");
+
+      let storedCVDocument = await hireyStore.getCvDocumentHash(0, {from: humanResourcesAccount})
+
+      assert.equal(cvDocumentHashOne, storedCVDocument[1])
     })
  
     it('try unlocked cv document hash for humanResourcesAccount with value less 30000 => revert transaction', async () => {
@@ -141,8 +152,8 @@ contract('HireyStore', (accounts) => {
 
       isUnlocked = await hireyStore.isCvDocumentUnlocked(0, {from: humanResourcesAccount})
       assert(isUnlocked, "Expected unlocked cv document!");
-      assert(await web3.eth.getBalance(contractCreatorAccount) > balanceContractCreatorAccount)
-      assert(await web3.eth.getBalance(humanResourcesAccount) < balanceHumanResourcesAccount)
+      assert(await web3.eth.getBalance(contractCreatorAccount) > balanceContractCreatorAccount, "d")
+      assert(await web3.eth.getBalance(humanResourcesAccount) < balanceHumanResourcesAccount, "s")
     })
 
     it('read unlocked cv document hash for humanResourcesAccount', async () => {
