@@ -1,4 +1,5 @@
 node_modules
+build
 
 # next build folder ("npm run build" output)
 .next
