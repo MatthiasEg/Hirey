@@ -1,8 +1,11 @@
+/* eslint-disable max-len */
 import DateFnsUtils from '@date-io/date-fns'
-import Box from '@material-ui/core/Box'
+import Grid from '@material-ui/core/Grid'
 import Button from '@material-ui/core/Button'
+import Chip from '@material-ui/core/Chip'
+import CheckIcon from '@material-ui/icons/Check'
+import Typography from '@material-ui/core/Typography'
 import CircularProgress from '@material-ui/core/CircularProgress'
-import FormControl from '@material-ui/core/FormControl'
 import InputLabel from '@material-ui/core/InputLabel'
 import MenuItem from '@material-ui/core/MenuItem'
 import Select from '@material-ui/core/Select'
@@ -18,7 +21,6 @@ import React, { useState } from 'react'
 import { useContract } from '../../context/ContractProvider'
 import { useIpfs } from '../../context/IpfsProvider'
 import { useUser } from '../../context/UserProvider'
-import styles from './newEntry.module.css'
 
 function Alert(props) {
   return <MuiAlert elevation={6} variant='filled' {...props} />
@@ -39,6 +41,7 @@ const NewEntry = () => {
   const [publishDate, setPublishDate] = useState(new Date())
   const [documentBuffer, setDocumentBuffer] = useState(undefined)
   const [recipient, setRecipient] = useState(undefined)
+  const [filename, setFilename] = useState('')
 
   const handleRecipientChange = (event) => {
     setRecipient(event.target.value)
@@ -51,10 +54,15 @@ const NewEntry = () => {
     const reader = new window.FileReader()
     // const reader = new FileReader()
     if (!file) return
+    setFilename(file.name)
     reader.readAsArrayBuffer(file)
     reader.onloadend = () => {
       setDocumentBuffer(Buffer.from(reader.result))
     }
+  }
+
+  const deleteDocument = () => {
+    setDocumentBuffer(undefined)
   }
 
   const handleSnackbarClose = (event, reason) => {
@@ -103,127 +111,154 @@ const NewEntry = () => {
     resetForm()
   }
 
-  const buttonLoadingStyle = {
-    display: 'flex',
-    alignItems: 'center',
-  }
-
   return (
-    <Box component='div'>
-      <h1>University Upload Page</h1>
-      <h3>Information</h3>
-      <form onSubmit={onSubmit} className={styles.formcontainer}>
-        <FormControl fullWidth>
-          <InputLabel>Bewerber/-in</InputLabel>
-          <Select
-            required
-            value={recipient || ''}
-            onChange={handleRecipientChange}
+    <form onSubmit={onSubmit}>
+      <Grid
+        container
+        justify='center'
+        alignItems='center'
+        alignContent='center'
+        direction='column'
+        spacing={6}
+      >
+        <Grid item xs={12}>
+          <Typography variant='h4'>Zertifikat ausstellen</Typography>
+        </Grid>
+        <Grid item>
+          <Grid
+            container
+            justify='center'
+            alignItems='center'
+            alignContent='center'
+            spacing={3}
           >
-            {allUsers
-              .filter((u) => u.type === 'applicant')
-              .map((userObject) => (
-                <MenuItem key={userObject.address} value={userObject}>
-                  {userObject.name}
-                </MenuItem>
-              ))}
-          </Select>
-        </FormControl>
-        <FormControl fullWidth>
-          <InputLabel>Ausbildungstyp</InputLabel>
-          <Select
-            required
-            value={educationType || ''}
-            onChange={(event) => setEducationType(event.target.value)}
-          >
-            <MenuItem value='Lehre EBA'>Lehre EBA</MenuItem>
-            <MenuItem value='Lehre EFZ'>Lehre EFZ</MenuItem>
-            <MenuItem value='Lehre Bachelor'>Bachelor</MenuItem>
-            <MenuItem value='Lehre Master'>Master</MenuItem>
-            <MenuItem value='Lehre Weiterbildung'>Weiterbildung</MenuItem>
-            <MenuItem value='Lehre Kurs'>Kurs</MenuItem>
-          </Select>
-          {/* <TextField required id="standard-required1" label="Ausbildungstyp" fullWidth value={educationType} onChange={event => setEducationType(event.target.value)} /> */}
-        </FormControl>
-        <FormControl fullWidth>
-          <TextField
-            required
-            id='standard-required2'
-            label='Titel'
-            fullWidth
-            value={title}
-            onChange={(event) => setTitle(event.target.value)}
-          />
-        </FormControl>
-        <FormControl fullWidth>
-          <TextField
-            id='standard-basic1'
-            label='Beschreibung (mehrere Zeilen m&ouml;glich)'
-            multiline
-            fullWidth
-            value={description}
-            onChange={(event) => setDescription(event.target.value)}
-          />
-        </FormControl>
-        <FormControl fullWidth>
-          <TextField
-            disabled
-            id='standard-disabled1'
-            label='Autor'
-            fullWidth
-            value={author}
-            onChange={(event) => setAuthor(event.target.value)}
-          />
-        </FormControl>
-        <FormControl fullWidth>
-          <MuiPickersUtilsProvider utils={DateFnsUtils}>
-            <KeyboardDatePicker
-              margin='normal'
-              label='Publizierungsdatum'
-              format='dd.MM.yyyy'
-              value={publishDate}
-              onChange={setPublishDate}
-              fullWidth
-            />
-          </MuiPickersUtilsProvider>
-        </FormControl>
-        <div>
-          <h4>Zertifikat</h4>
-          {/* <input required type='file' onChange={captureFile} /> */}
-          <label htmlFor='upload-photo'>
-            <input
-              style={{ display: 'none' }}
-              id='upload-photo'
-              name='upload-photo'
-              required
-              type='file'
-              onChange={captureFile}
-            />
-            <Button color='secondary' variant='contained' component='span'>
-              Datei auswählen
-            </Button>
-          </label>
-        </div>
-        <br />
-        <div style={buttonLoadingStyle}>
-          <Button
-            variant='contained'
-            color='primary'
-            type='submit'
-            disabled={isSaving}
-          >
-            Speichern
-          </Button>
-          {isSaving ? (
-            <CircularProgress
-              style={{ marginLeft: '12px' }}
-              color='secondary'
-            />
-          ) : (
-            <></>
-          )}
-        </div>
-      </form>
+            <Grid item xs={12} md={6}>
+              <InputLabel>Student/-in</InputLabel>
+              <Select
+                required
+                fullWidth
+                value={recipient || ''}
+                onChange={handleRecipientChange}
+              >
+                {allUsers
+                  .filter((u) => u.type === 'applicant')
+                  .map((userObject) => (
+                    <MenuItem key={userObject.address} value={userObject}>
+                      {userObject.name}
+                    </MenuItem>
+                  ))}
+              </Select>
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <InputLabel>Ausbildungstyp</InputLabel>
+              <Select
+                required
+                fullWidth
+                value={educationType || ''}
+                onChange={(event) => setEducationType(event.target.value)}
+              >
+                <MenuItem value='Lehre EBA'>Lehre EBA</MenuItem>
+                <MenuItem value='Lehre EFZ'>Lehre EFZ</MenuItem>
+                <MenuItem value='Lehre Bachelor'>Bachelor</MenuItem>
+                <MenuItem value='Lehre Master'>Master</MenuItem>
+                <MenuItem value='Lehre Weiterbildung'>Weiterbildung</MenuItem>
+                <MenuItem value='Lehre Kurs'>Kurs</MenuItem>
+              </Select>
+              {/* <TextField required id="standard-required1" label="Ausbildungstyp" fullWidth value={educationType} onChange={event => setEducationType(event.target.value)} /> */}
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                required
+                id='standard-required2'
+                label='Titel'
+                fullWidth
+                value={title}
+                onChange={(event) => setTitle(event.target.value)}
+              />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                disabled
+                label='Autor'
+                fullWidth
+                value={author}
+                onChange={(event) => setAuthor(event.target.value)}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                label='Beschreibung (mehrere Zeilen m&ouml;glich)'
+                multiline
+                fullWidth
+                value={description}
+                onChange={(event) => setDescription(event.target.value)}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <MuiPickersUtilsProvider utils={DateFnsUtils}>
+                <KeyboardDatePicker
+                  margin='normal'
+                  label='Publizierungsdatum'
+                  format='dd.MM.yyyy'
+                  value={publishDate}
+                  onChange={setPublishDate}
+                  fullWidth
+                />
+              </MuiPickersUtilsProvider>
+            </Grid>
+            <Grid item xs={12}>
+              <Grid container justify='space-between'>
+                <Grid item>
+                  {documentBuffer ? (
+                    <Chip
+                      color='secondary'
+                      label={filename}
+                      onDelete={deleteDocument}
+                      icon={<CheckIcon />}
+                    />
+                  ) : (
+                    <label htmlFor='upload-photo'>
+                      <input
+                        style={{ display: 'none' }}
+                        id='upload-photo'
+                        name='upload-photo'
+                        required
+                        type='file'
+                        onChange={captureFile}
+                      />
+                      <Button
+                        color='secondary'
+                        variant='contained'
+                        component='span'
+                      >
+                        Dokument hinzufügen
+                      </Button>
+                    </label>
+                  )}
+                </Grid>
+                <Grid item>
+                  <Button
+                    variant='contained'
+                    color='primary'
+                    type='submit'
+                    disabled={isSaving}
+                  >
+                    Hochladen & Ausstellen
+                  </Button>
+                  {isSaving ? (
+                    <CircularProgress
+                      style={{ marginLeft: '12px' }}
+                      color='secondary'
+                    />
+                  ) : (
+                    <></>
+                  )}
+                </Grid>
+              </Grid>
+            </Grid>
+          </Grid>
+        </Grid>
+      </Grid>
       <Snackbar
         open={uploadSuccessful}
         autoHideDuration={5000}
@@ -233,7 +268,7 @@ const NewEntry = () => {
           Dokument erfolgreich hochgeladen!
         </Alert>
       </Snackbar>
-    </Box>
+    </form>
   )
 }
 
