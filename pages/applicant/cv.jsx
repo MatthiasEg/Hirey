@@ -71,7 +71,7 @@ const CV = () => {
   const [detailCVRecord, setDetailCVRecord] = useState(null)
   const [checked, setChecked] = useState([])
   const [expanded, setExpanded] = useState(false)
-  const [targetAccount, setTargetAccount] = useState('')
+  // const [targetAccount, setTargetAccount] = useState('')
   const [cvDocumentTitle, setCVDocumentTitle] = useState('')
   const [isLoading, setIsLoading] = useState(true)
 
@@ -83,6 +83,7 @@ const CV = () => {
       const nbrOfCvRecordHashes = await contract.methods
         .getNbrOfCvRecordHashes()
         .call()
+      console.log(nbrOfCvRecordHashes)
       const newCVRecords = []
       for (
         let cvRecordHashIndex = 0;
@@ -95,7 +96,7 @@ const CV = () => {
         const sender = cvRecord[0]
         const ipfsHash = cvRecord[1]
 
-        const senderUser = allUsers.find((u) => u.address == sender)
+        const senderUser = allUsers.find((u) => u.address === sender)
         const result = await ipfs.download(
           user.privateKey,
           senderUser.publicKey,

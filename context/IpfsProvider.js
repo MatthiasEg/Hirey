@@ -18,7 +18,11 @@ const IpfsProvider = (props) => {
 export const useIpfs = () => useContext(IpfsContext)
 export default IpfsProvider
 
-const upload = async (publicKeyStringRecipient, privateKeyStringSender, data) => {
+const upload = async (
+  publicKeyStringRecipient,
+  privateKeyStringSender,
+  data,
+) => {
   if (typeof publicKeyStringRecipient !== 'string') {
     throw Error('recipient public key ist not a string!')
   }
@@ -26,7 +30,7 @@ const upload = async (publicKeyStringRecipient, privateKeyStringSender, data) =>
     throw Error('sender private key ist not a string!')
   }
 
-  data["signature"] = await fileCrypto.sign(privateKeyStringSender, data)
+  data['signature'] = await fileCrypto.sign(privateKeyStringSender, data)
 
   const serializedData = JSON.stringify(data)
   const encryptedData = await fileCrypto.encrypt(
@@ -38,8 +42,11 @@ const upload = async (publicKeyStringRecipient, privateKeyStringSender, data) =>
   return ipfsResponse.path
 }
 
-
-const download = async (privateKeyStringRecipient, publicKeyStringSender, ipfsHash) => {
+const download = async (
+  privateKeyStringRecipient,
+  publicKeyStringSender,
+  ipfsHash,
+) => {
   if (typeof ipfsHash !== 'string') {
     throw Error('ipfs hash must be a string!')
   }
@@ -58,7 +65,13 @@ const download = async (privateKeyStringRecipient, publicKeyStringSender, ipfsHa
     const signatureJson = decryptedFileJson.signature
     delete decryptedFileJson.signature
 
-    if (await fileCrypto.verify(publicKeyStringSender, decryptedFileJson, signatureJson.data)) {
+    if (
+      await fileCrypto.verify(
+        publicKeyStringSender,
+        decryptedFileJson,
+        signatureJson.data,
+      )
+    ) {
       return decryptedFileJson
     }
     throw Error('invalid signature of document')

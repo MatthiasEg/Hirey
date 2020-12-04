@@ -28,8 +28,8 @@ import Divider from '@material-ui/core/Divider'
 import { Document, Page, pdfjs } from 'react-pdf'
 import { useContract } from '../../context/ContractProvider'
 import { useUser } from '../../context/UserProvider'
-import Avatar from '@material-ui/core/Avatar';
-import Chip from '@material-ui/core/Chip';
+import Avatar from '@material-ui/core/Avatar'
+import Chip from '@material-ui/core/Chip'
 import ipfs from '../../lib/IPFSClient'
 import { render } from 'react-dom'
 
@@ -61,10 +61,10 @@ const useStyles = makeStyles((theme) => ({
   },
   headerCard: {
     background: '#7798DA',
-    marginBottom:20,
+    marginBottom: 20,
   },
   detailCard: {
-    marginBottom:20,
+    marginBottom: 20,
   },
   sharedToContainer: {
     borderRadius: 25,
@@ -117,30 +117,30 @@ const Read = () => {
         cvDocumentHashIndex += 1
       ) {
         const isUnlocked = await contract.methods
-        .isCvDocumentUnlocked(cvDocumentHashIndex)
-        .call({
-          from: user.address,
-        })
+          .isCvDocumentUnlocked(cvDocumentHashIndex)
+          .call({
+            from: user.address,
+          })
 
         const cvDocument = await contract.methods
-        .getCvDocumentHash(cvDocumentHashIndex)
-        .call({
-          from: user.address,
-        })
+          .getCvDocumentHash(cvDocumentHashIndex)
+          .call({
+            from: user.address,
+          })
         const sender = cvDocument[0]
-        if(isUnlocked) {
+        if (isUnlocked) {
           const hash = cvDocument[1]
           await fetch(`https://ipfs.infura.io/ipfs/${hash}`)
             .then((response) => response.json())
             .then((jsonData) => {
-            jsonData.sender = sender
-            jsonData.unlocked = true
-            newCVDocuments.push(jsonData)
-            newCVDocumentHashes.push(hash)
-          })
+              jsonData.sender = sender
+              jsonData.unlocked = true
+              newCVDocuments.push(jsonData)
+              newCVDocumentHashes.push(hash)
+            })
           console.log(`https://ipfs.infura.io/ipfs/${hash}`)
         } else {
-          newCVDocuments.push({unlocked: false, sender: sender, records: []})
+          newCVDocuments.push({ unlocked: false, sender: sender, records: [] })
           newCVDocumentHashes.push('')
         }
       }
@@ -165,38 +165,39 @@ const Read = () => {
 
   const handleClickedUnlock = (cvDocumentIndex) => () => {
     contract.methods
-    .unlockCVDocument(cvDocumentIndex)
-    .send({
-      from: user.address,
-      value: 30000,
-    })
-    .then(() => {
-      console.log(
-        `successfully unlock: https://ipfs.infura.io/ipfs/${detailCVDocumentHash}`,
-      )
-      const newCVDocuments = [...cvDocuments]
-      const newCVDocumentHashes = [...cvDocumentHashes]
-      contract.methods
-      .getCvDocumentHash(cvDocumentIndex)
-      .call({
+      .unlockCVDocument(cvDocumentIndex)
+      .send({
         from: user.address,
-      }).then((cvDocument) => {
-        const sender = cvDocument[0]
-        const hash = cvDocument[1]
-        fetch(`https://ipfs.infura.io/ipfs/${hash}`)
-          .then((response) => response.json())
-          .then((jsonData) => {
-          jsonData.sender = sender
-          jsonData.unlocked = true
-          newCVDocuments[cvDocumentIndex] = jsonData
-          newCVDocumentHashes[cvDocumentIndex] = hash
-          setCVDocuments(newCVDocuments)
-          setCVDocumentHashes(newCVDocumentHashes)
-          setDetailCVDocument(newCVDocuments[cvDocumentIndex])
-          setDetailCVDocumentIndex(cvDocumentIndex)
-        })
+        value: 30000,
       })
-    })
+      .then(() => {
+        console.log(
+          `successfully unlock: https://ipfs.infura.io/ipfs/${detailCVDocumentHash}`,
+        )
+        const newCVDocuments = [...cvDocuments]
+        const newCVDocumentHashes = [...cvDocumentHashes]
+        contract.methods
+          .getCvDocumentHash(cvDocumentIndex)
+          .call({
+            from: user.address,
+          })
+          .then((cvDocument) => {
+            const sender = cvDocument[0]
+            const hash = cvDocument[1]
+            fetch(`https://ipfs.infura.io/ipfs/${hash}`)
+              .then((response) => response.json())
+              .then((jsonData) => {
+                jsonData.sender = sender
+                jsonData.unlocked = true
+                newCVDocuments[cvDocumentIndex] = jsonData
+                newCVDocumentHashes[cvDocumentIndex] = hash
+                setCVDocuments(newCVDocuments)
+                setCVDocumentHashes(newCVDocumentHashes)
+                setDetailCVDocument(newCVDocuments[cvDocumentIndex])
+                setDetailCVDocumentIndex(cvDocumentIndex)
+              })
+          })
+      })
   }
 
   // open and close expand with documents
@@ -240,24 +241,26 @@ const Read = () => {
                     </ListItem>
                   ) : (
                     <ListItem
-                    key={cvDocumentIndex}
-                    className={classes.listItem}
-                    onClick={handleClickedUnlock(cvDocumentIndex)}
-                    button
+                      key={cvDocumentIndex}
+                      className={classes.listItem}
+                      onClick={handleClickedUnlock(cvDocumentIndex)}
+                      button
                     >
-                    <ListItemText
-                      primary='LOCKED' 
-                      secondary={`${cvDocument.sender.substring(0, 25)}...`}
-                    />
+                      <ListItemText
+                        primary='LOCKED'
+                        secondary={`${cvDocument.sender.substring(0, 25)}...`}
+                      />
                     </ListItem>
-                  ) 
+                  )
                 })}
               </List>
             </Grid>
 
             {/* RIGHT SIDE */}
             <Grid item xs={8}>
-              {detailCVDocument != null && detailCVDocument.records !=null && detailCVDocument.records.length > 0 ? (
+              {detailCVDocument != null &&
+              detailCVDocument.records != null &&
+              detailCVDocument.records.length > 0 ? (
                 <>
                   {detailCVDocument.records.map((cvRecord, cvRecordIndex) => {
                     return (
@@ -281,7 +284,9 @@ const Read = () => {
                           {cvRecord.documents.length > 0 && (
                             <IconButton
                               className={clsx(classes.expand, {
-                                [classes.expandOpen]: expanded.includes(cvRecordIndex),
+                                [classes.expandOpen]: expanded.includes(
+                                  cvRecordIndex,
+                                ),
                               })}
                               onClick={handleExpandClick(cvRecordIndex)}
                               aria-expanded={expanded.includes(cvRecordIndex)}
@@ -291,7 +296,11 @@ const Read = () => {
                             </IconButton>
                           )}
                         </CardActions>
-                        <Collapse in={expanded.includes(cvRecordIndex)} timeout='auto' unmountOnExit>
+                        <Collapse
+                          in={expanded.includes(cvRecordIndex)}
+                          timeout='auto'
+                          unmountOnExit
+                        >
                           <CardContent>
                             <Typography paragraph>Documents</Typography>
                             {cvRecord.documents.map(
@@ -299,7 +308,8 @@ const Read = () => {
                                 return (
                                   <Box component='div' key={documentIndex}>
                                     <p>
-                                      Document Link: https://ipfs.infura.io/ipfs/
+                                      Document Link:
+                                      https://ipfs.infura.io/ipfs/
                                       {documentHash}
                                     </p>
                                     <Document
@@ -316,9 +326,9 @@ const Read = () => {
                       </Card>
                     )
                   })}
-                
-              {/* Fallback Detail*/}
-              </>
+
+                  {/* Fallback Detail*/}
+                </>
               ) : (
                 <>No CV Document selected!</>
               )}
