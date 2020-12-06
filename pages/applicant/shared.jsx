@@ -32,6 +32,8 @@ import Avatar from '@material-ui/core/Avatar'
 import Chip from '@material-ui/core/Chip'
 import { render } from 'react-dom'
 import { useIpfs } from '../../context/IpfsProvider'
+import Snackbar from '@material-ui/core/Snackbar';
+import MuiAlert from '@material-ui/lab/Alert';
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.js`
 
@@ -101,6 +103,7 @@ const Shared = () => {
   const [expanded, setExpanded] = useState([])
   const [targetAccount, setTargetAccount] = useState('')
   const [isLoading, setIsLoading] = useState(true)
+  const [open, setOpen] = React.useState(false);
   // Const
   const pageNumber = 1
 
@@ -196,6 +199,7 @@ const Shared = () => {
         const newCvDocuments = [...cvDocuments]
         newCvDocuments[detailCVDocumentIndex].sharedTo.push(targetAccount)
         setCVDocuments(newCvDocuments)
+        setOpen(true);
       })
   }
 
@@ -210,6 +214,14 @@ const Shared = () => {
     }
     setExpanded(newExpanded)
   }
+
+  const handleClose = (event, reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+
+    setOpen(false);
+  };
 
   useEffect(() => {
     ;(async () => {
@@ -253,7 +265,7 @@ const Shared = () => {
                       <Card className={classes.headerCard}>
                         <CardHeader
                           title={detailCVDocument.title}
-                          subheader={`by ${detailCVDocument.name} | Number of Records: ${detailCVDocument.records.length}`}
+                          subheader={`von ${detailCVDocument.name} | Anzahl Lebenslaufeinträge: ${detailCVDocument.records.length}`}
                         />
                         <CardContent>
                           <Box
@@ -264,7 +276,7 @@ const Shared = () => {
                               component='div'
                               className={classes.sharedToContainerTitle}
                             >
-                              Shared to:
+                              Freigegeben an:
                             </Box>
                             <Box
                               component='div'
@@ -275,7 +287,7 @@ const Shared = () => {
                                   return (
                                     <Chip
                                       size='small'
-                                      label={sharedToAdresse}
+                                      label={allUsers.find((u) => u.address === sharedToAdresse).name}
                                       color='secondary'
                                       key={sharedToAdresseIndex}
                                     />
@@ -292,7 +304,7 @@ const Shared = () => {
                                   setTargetAccount(event.target.value)
                                 }
                                 className={classes.targetAccountTextField}
-                                label='Share for AccountId'
+                                label='Teile mit (AccountId)'
                                 required
                                 InputProps={{
                                   startAdornment: (
@@ -323,7 +335,7 @@ const Shared = () => {
                             >
                               <CardHeader
                                 title={cvRecord.title}
-                                subheader={`by ${cvRecord.autor} | publish date: ${cvRecord.publishDate}`}
+                                subheader={`von ${cvRecord.autor} | publiziert am: ${cvRecord.publishDate}`}
                               />
                               <CardContent>
                                 {cvRecord.type === 'Anstellung' && (
@@ -337,7 +349,7 @@ const Shared = () => {
                               </CardContent>
                               <Divider light />
                               <CardActions disableSpacing>
-                              <Typography paragraph>Document</Typography>
+                              <Typography paragraph>Dokument</Typography>
                                 <IconButton
                                   className={clsx(classes.expand, {
                                     [classes.expandOpen]: expanded.includes(
@@ -348,7 +360,7 @@ const Shared = () => {
                                   aria-expanded={expanded.includes(
                                     cvRecordIndex,
                                   )}
-                                  aria-label='show documents'
+                                  aria-label='Dokumente Anzeigen'
                                 >
                                   <ExpandMoreIcon />
                                 </IconButton>
@@ -374,7 +386,7 @@ const Shared = () => {
                       {/* Fallback Detail*/}
                     </>
                   ) : (
-                    <>No CV Document selected!</>
+                    <>Kein Lebenslauf selektiert!</>
                   )}
                 </Grid>
               </Grid>
@@ -382,7 +394,7 @@ const Shared = () => {
               {/* Fallback Page*/}
             </>
           ) : (
-            <>Keine CV Records gefunden.</>
+            <>Keine Lebenslaufeinträge gefunden.</>
           )}
         </Box>
       ) : (
@@ -390,6 +402,11 @@ const Shared = () => {
           <CircularProgress color='primary' variant='indeterminate' size={70} />
         </Grid>
       )}
+      <Snackbar open={open} autoHideDuration={6000} onClose={handleClose}>
+        <MuiAlert elevation={6} variant="filled" onClose={handleClose} severity="success">
+          Lebenslauf erfolgreich geteilt!
+        </MuiAlert>
+      </Snackbar>
     </Box>
   )
 }

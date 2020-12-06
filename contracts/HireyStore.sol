@@ -16,9 +16,9 @@ contract HireyStore {
     address[] sharedTo;
   }
 
-  address payable public contractCreatorAddress;
-  mapping(address => CVRecord[]) cvRecordHashes;
-  mapping(address => CVDocument[]) cvDocumentHashes;
+  address payable private contractCreatorAddress;
+  mapping(address => CVRecord[]) private cvRecordHashes;
+  mapping(address => CVDocument[]) private cvDocumentHashes;
 
   constructor() public {
     contractCreatorAddress = msg.sender;

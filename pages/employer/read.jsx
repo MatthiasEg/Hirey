@@ -88,7 +88,7 @@ const useStyles = makeStyles((theme) => ({
 
 const Read = () => {
   // Providers
-  const { user } = useUser()
+  const { user, allUsers } = useUser()
   const { contract } = useContract()
   const classes = useStyles()
   // States
@@ -247,8 +247,8 @@ const Read = () => {
                       button
                     >
                       <ListItemText
-                        primary='LOCKED'
-                        secondary={`${cvDocument.sender.substring(0, 25)}...`}
+                        primary='Gesperrt'
+                        secondary={`${allUsers.find((u) => u.address === cvDocument.sender).name}`}
                       />
                     </ListItem>
                   )
@@ -267,12 +267,12 @@ const Read = () => {
                       <Card className={classes.detailCard} key={cvRecordIndex}>
                         <CardHeader
                           title={cvRecord.title}
-                          subheader={`by ${cvRecord.autor} | publish date: ${cvRecord.publishDate}`}
+                          subheader={`von ${cvRecord.autor} | publiziert am: ${cvRecord.publishDate}`}
                         />
                         <CardContent>
                           {cvRecord.type === 'Anstellung' && (
                             <Typography variant='subtitle1' component='p'>
-                              From: {cvRecord.from} To: {cvRecord.to}
+                              Von: {cvRecord.from} Bis: {cvRecord.to}
                             </Typography>
                           )}
                           <Typography variant='body2' component='p'>
@@ -290,7 +290,7 @@ const Read = () => {
                               })}
                               onClick={handleExpandClick(cvRecordIndex)}
                               aria-expanded={expanded.includes(cvRecordIndex)}
-                              aria-label='show documents'
+                              aria-label='Dokumente anzeigen'
                             >
                               <ExpandMoreIcon />
                             </IconButton>
@@ -302,13 +302,13 @@ const Read = () => {
                           unmountOnExit
                         >
                           <CardContent>
-                            <Typography paragraph>Documents</Typography>
+                            <Typography paragraph>Dokumente</Typography>
                             {cvRecord.documents.map(
                               (documentHash, documentIndex) => {
                                 return (
                                   <Box component='div' key={documentIndex}>
                                     <p>
-                                      Document Link:
+                                      Dokument Link:
                                       https://ipfs.infura.io/ipfs/
                                       {documentHash}
                                     </p>
@@ -330,7 +330,7 @@ const Read = () => {
                   {/* Fallback Detail*/}
                 </>
               ) : (
-                <>No CV Document selected!</>
+                <>Kein Lebenslauf selektiert!</>
               )}
             </Grid>
           </Grid>

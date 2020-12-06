@@ -27,6 +27,8 @@ import { Document, Page, pdfjs } from 'react-pdf'
 import { useContract } from '../../context/ContractProvider'
 import { useIpfs } from '../../context/IpfsProvider'
 import { useUser } from '../../context/UserProvider'
+import Snackbar from '@material-ui/core/Snackbar';
+import MuiAlert from '@material-ui/lab/Alert';
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.js`
 
@@ -74,6 +76,7 @@ const CV = () => {
   // const [targetAccount, setTargetAccount] = useState('')
   const [cvDocumentTitle, setCVDocumentTitle] = useState('')
   const [isLoading, setIsLoading] = useState(true)
+  const [open, setOpen] = React.useState(false);
 
   // Const
   const pageNumber = 1
@@ -156,15 +159,26 @@ const CV = () => {
       user.privateKey,
       cvDocument,
     )
+    
     await contract.methods.storeCVDocument(ipfsHash).send({
       from: user.address,
     })
+    setOpen(true);
   }
+  
 
   // open and close expand with documents
   const handleExpandClick = () => {
     setExpanded(!expanded)
   }
+
+  const handleClose = (event, reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+
+    setOpen(false);
+  };
 
   useEffect(() => {
     ;(async () => {
@@ -194,7 +208,7 @@ const CV = () => {
                           <ListItemText
                             id={labelId}
                             primary={cvRecord.title}
-                            secondary={`${cvRecord.sender.substring(0, 25)}...`}
+                            secondary={`${allUsers.find((u) => u.address === cvRecord.sender).name}`}
                           />
                           <ListItemSecondaryAction>
                             <Checkbox
@@ -212,7 +226,7 @@ const CV = () => {
                   </List>
                   <Box component='div'>
                     <Typography paragraph>
-                      Number of selected cv records: {checked.length}
+                      Anzahl selektierter Lebenslaufeinträge: {checked.length}
                     </Typography>
                     <form onSubmit={onCreate}>
                       <TextField
@@ -220,11 +234,11 @@ const CV = () => {
                           setCVDocumentTitle(event.target.value)
                         }
                         className={classes.cvDocumentTitleTextField}
-                        label='CV document title:'
+                        label='Lebenslauf Titel:'
                         required
                       />
                       <Button type='submit' variant='contained' color='primary'>
-                        Create
+                        Erstellen
                       </Button>
                     </form>
                   </Box>
@@ -236,7 +250,7 @@ const CV = () => {
                     <Card>
                       <CardHeader
                         title={detailCVRecord.title}
-                        subheader={`by ${detailCVRecord.autor} | publish date: ${detailCVRecord.publishDate}`}
+                        subheader={`von ${detailCVRecord.autor} | publiziert am: ${detailCVRecord.publishDate}`}
                       />
                       <CardContent>
                         {detailCVRecord.type === 'Anstellung' && (
@@ -256,14 +270,14 @@ const CV = () => {
                           })}
                           onClick={handleExpandClick}
                           aria-expanded={expanded}
-                          aria-label='show documents'
+                          aria-label='Dokumente Anzeigen'
                         >
                           <ExpandMoreIcon />
                         </IconButton>
                       </CardActions>
                       <Collapse in={expanded} timeout='auto' unmountOnExit>
                         <CardContent>
-                          <Typography paragraph>Documents</Typography>
+                          <Typography paragraph>Dokument</Typography>
                           <Box component='div'>
                             <Document file={detailCVRecord.document}>
                               <Page pageNumber={pageNumber} />
@@ -277,7 +291,7 @@ const CV = () => {
               </Grid>
             </>
           ) : (
-            <>Keine CV Records vorhanden.</>
+            <>Keine Lebenslaufeinträge vorhanden.</>
           )}
         </Box>
       ) : (
@@ -285,6 +299,11 @@ const CV = () => {
           <CircularProgress color='primary' variant='indeterminate' size={70} />
         </Grid>
       )}
+      <Snackbar open={open} autoHideDuration={6000} onClose={handleClose}>
+        <MuiAlert elevation={6} variant="filled" onClose={handleClose} severity="success">
+          Lebenslauf erfolgreich erstellt!
+        </MuiAlert>
+      </Snackbar>
     </Box>
   )
 }
