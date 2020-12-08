@@ -1,6 +1,7 @@
 /* eslint-disable no-alert */
 import React, { useContext, useEffect, createContext, useState } from 'react'
 import Web3 from 'web3'
+import { useRouter } from 'next/router'
 import users from '../lib/Users'
 
 const UserContext = createContext(null)
@@ -8,6 +9,7 @@ const UserContext = createContext(null)
 const UserProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null)
   const [allUsers, setAllUsers] = useState([])
+  const router = useRouter()
 
   const loadWeb3 = async () => {
     if (window.ethereum) {
@@ -40,13 +42,13 @@ const UserProvider = ({ children }) => {
       // setup listener for accounts change
       window.ethereum.on('accountsChanged', async () => {
         await loadAccount()
-        window.location = '/'
+        router.replace('/')
       })
     })()
   }, [])
 
   return (
-    <UserContext.Provider value={{ user: currentUser, allUsers: allUsers }}>
+    <UserContext.Provider value={{ user: currentUser, allUsers }}>
       {children}
     </UserContext.Provider>
   )

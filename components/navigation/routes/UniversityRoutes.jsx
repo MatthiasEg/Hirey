@@ -14,7 +14,7 @@ const UniversityRoutes = () => {
           <ListItemIcon>
             <NoteAddIcon />
           </ListItemIcon>
-          <ListItemText primary='Create Entry' />
+          <ListItemText primary='Zeugniss ausstellen' />
         </ListItem>
       </Link>
     </>

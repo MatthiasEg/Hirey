@@ -15,7 +15,7 @@ const EmployerRoutes = () => {
           <ListItemIcon>
             <NoteAddIcon />
           </ListItemIcon>
-          <ListItemText primary='Create Entry' />
+          <ListItemText primary='Arbeitsverhältnis eintragen' />
         </ListItem>
       </Link>
       <Link href='/employer/read' passHref>
@@ -23,7 +23,7 @@ const EmployerRoutes = () => {
           <ListItemIcon>
             <FolderSharedIcon />
           </ListItemIcon>
-          <ListItemText primary={"Read shared CV's"} />
+          <ListItemText primary='Lebensläufe lesen' />
         </ListItem>
       </Link>
     </>

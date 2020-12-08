@@ -15,7 +15,7 @@ const ApplicantRoutes = () => {
           <ListItemIcon>
             <NoteAddIcon />
           </ListItemIcon>
-          <ListItemText primary='Create CV' />
+          <ListItemText primary='Lebenslauf erstellen' />
         </ListItem>
       </Link>
       <Link href='/applicant/shared' passHref>
@@ -23,7 +23,7 @@ const ApplicantRoutes = () => {
           <ListItemIcon>
             <FolderSharedIcon />
           </ListItemIcon>
-          <ListItemText primary={"Shared CV's"} />
+          <ListItemText primary='Geteilte Lebensläufe' />
         </ListItem>
       </Link>
     </>

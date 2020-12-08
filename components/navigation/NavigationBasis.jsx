@@ -89,7 +89,7 @@ const NavigationBasis = () => {
       ) {
         return <ApplicantRoutes />
       }
-  
+
       return <UniversityRoutes />
     }
 
@@ -113,7 +113,11 @@ const NavigationBasis = () => {
               </IconButton>
             </Grid>
             <Grid item>
-              <Drawer open={drawerOpen} onClose={toggleDrawer(false)}>
+              <Drawer
+                open={drawerOpen}
+                onClose={toggleDrawer(false)}
+                variant='permanent'
+              >
                 <div
                   className={classes.list}
                   role='presentation'
@@ -140,17 +144,17 @@ const NavigationBasis = () => {
                           >
                             <Grid item>
                               <Typography variant='body2'>
-                                You are logged in with account:
+                                Du bist eingelogt mit Account:
                               </Typography>
                             </Grid>
                             <Grid item>
                               <Typography className={classes.accountText}>
-                                name: {user.name}
+                                Name: {user.name}
                               </Typography>
                             </Grid>
                             <Grid item>
                               <Typography className={classes.accountText}>
-                                address:
+                                Adresse:
                               </Typography>
                             </Grid>
                             <Grid item>
