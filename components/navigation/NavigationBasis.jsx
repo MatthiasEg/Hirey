@@ -79,7 +79,10 @@ const NavigationBasis = () => {
 
   const RoleSpecificRoutes = () => {
     if (user) {
-      if (user.address === '0xa643664FBB17124B881cf5c757D68cEb9E39b577') {
+      if (
+        user.address === '0xa643664FBB17124B881cf5c757D68cEb9E39b577' ||
+        user.address === '0x972A179ea5e8EA65E1A94d44FaaC0AAb3A70Bb70'
+      ) {
         return <EmployerRoutes />
       }
       if (

@@ -13,15 +13,15 @@ import Collapse from '@material-ui/core/Collapse'
 import Divider from '@material-ui/core/Divider'
 import Grid from '@material-ui/core/Grid'
 import IconButton from '@material-ui/core/IconButton'
-import InputAdornment from '@material-ui/core/InputAdornment'
+import InputLabel from '@material-ui/core/InputLabel'
 import List from '@material-ui/core/List'
 import ListItem from '@material-ui/core/ListItem'
 import ListItemText from '@material-ui/core/ListItemText'
+import MenuItem from '@material-ui/core/MenuItem'
+import Select from '@material-ui/core/Select'
 import Snackbar from '@material-ui/core/Snackbar'
 import { makeStyles } from '@material-ui/core/styles'
-import TextField from '@material-ui/core/TextField'
 import Typography from '@material-ui/core/Typography'
-import AccountCircle from '@material-ui/icons/AccountCircle'
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
 import MuiAlert from '@material-ui/lab/Alert'
 import clsx from 'clsx'
@@ -30,9 +30,6 @@ import { Document, Page, pdfjs } from 'react-pdf'
 import { useContract } from '../../context/ContractProvider'
 import { useIpfs } from '../../context/IpfsProvider'
 import { useUser } from '../../context/UserProvider'
-import InputLabel from '@material-ui/core/InputLabel'
-import Select from '@material-ui/core/Select'
-import MenuItem from '@material-ui/core/MenuItem'
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.js`
 
@@ -106,6 +103,7 @@ const Shared = () => {
 
   const loadCVDocument = async () => {
     if (contract) {
+      console.log(allUsers)
       const nbrOfCvDocumentHashes = await contract.methods
         .getNbrOfCvDocumentHashes()
         .call({
@@ -318,7 +316,7 @@ const Shared = () => {
                           <form onSubmit={onShare}>
                             <Grid
                               container
-                              justify='between'
+                              justify='space-between'
                               alignItems='center'
                               alignContent='center'
                               spacing={3}
@@ -332,7 +330,7 @@ const Shared = () => {
                                   onChange={handleTargetAccountChange}
                                 >
                                   {allUsers
-                                    .filter((u) => u.type === 'employer')
+                                    .filter((u) => u.type === 'employer' && !detailCVDocument.sharedTo.some(id => id == u.address))
                                     .map((userObject) => (
                                       <MenuItem
                                         key={userObject.address}
