@@ -17,18 +17,18 @@ import List from '@material-ui/core/List'
 import ListItem from '@material-ui/core/ListItem'
 import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction'
 import ListItemText from '@material-ui/core/ListItemText'
+import Snackbar from '@material-ui/core/Snackbar'
 import { makeStyles } from '@material-ui/core/styles'
 import TextField from '@material-ui/core/TextField'
 import Typography from '@material-ui/core/Typography'
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
+import MuiAlert from '@material-ui/lab/Alert'
 import clsx from 'clsx'
 import React, { useEffect, useState } from 'react'
 import { Document, Page, pdfjs } from 'react-pdf'
 import { useContract } from '../../context/ContractProvider'
 import { useIpfs } from '../../context/IpfsProvider'
 import { useUser } from '../../context/UserProvider'
-import Snackbar from '@material-ui/core/Snackbar';
-import MuiAlert from '@material-ui/lab/Alert';
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.js`
 
@@ -76,7 +76,7 @@ const CV = () => {
   // const [targetAccount, setTargetAccount] = useState('')
   const [cvDocumentTitle, setCVDocumentTitle] = useState('')
   const [isLoading, setIsLoading] = useState(true)
-  const [open, setOpen] = React.useState(false);
+  const [open, setOpen] = React.useState(false)
 
   // Const
   const pageNumber = 1
@@ -108,6 +108,9 @@ const CV = () => {
         if (!result.sender) {
           result.sender = sender
         }
+        console.log('cvRecord download result')
+        console.log(result)
+
         newCVRecords.push(result)
       }
 
@@ -159,13 +162,15 @@ const CV = () => {
       user.privateKey,
       cvDocument,
     )
-    
+
+    console.log('cv upload data')
+    console.log(cvDocument)
+
     await contract.methods.storeCVDocument(ipfsHash).send({
       from: user.address,
     })
-    setOpen(true);
+    setOpen(true)
   }
-  
 
   // open and close expand with documents
   const handleExpandClick = () => {
@@ -174,11 +179,11 @@ const CV = () => {
 
   const handleClose = (event, reason) => {
     if (reason === 'clickaway') {
-      return;
+      return
     }
 
-    setOpen(false);
-  };
+    setOpen(false)
+  }
 
   useEffect(() => {
     ;(async () => {
@@ -208,7 +213,11 @@ const CV = () => {
                           <ListItemText
                             id={labelId}
                             primary={cvRecord.title}
-                            secondary={`${allUsers.find((u) => u.address === cvRecord.sender).name}`}
+                            secondary={`${
+                              allUsers.find(
+                                (u) => u.address === cvRecord.sender,
+                              ).name
+                            }`}
                           />
                           <ListItemSecondaryAction>
                             <Checkbox
@@ -300,7 +309,12 @@ const CV = () => {
         </Grid>
       )}
       <Snackbar open={open} autoHideDuration={6000} onClose={handleClose}>
-        <MuiAlert elevation={6} variant="filled" onClose={handleClose} severity="success">
+        <MuiAlert
+          elevation={6}
+          variant='filled'
+          onClose={handleClose}
+          severity='success'
+        >
           Lebenslauf erfolgreich erstellt!
         </MuiAlert>
       </Snackbar>

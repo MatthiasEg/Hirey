@@ -87,7 +87,7 @@ const NewEntry = () => {
   const onSubmit = async (event) => {
     event.preventDefault()
     setIsSaving(true)
-    const educationData = {
+    const employerData = {
       type: workType,
       title,
       description,
@@ -98,10 +98,13 @@ const NewEntry = () => {
       document: documentBuffer,
     }
 
+    console.log('new employer entry data')
+    console.log(employerData)
+
     const ipfsHash = await ipfs.upload(
       recipient.publicKey,
       user.privateKey,
-      educationData,
+      employerData,
     )
     console.log(`IPFS hash from upload: ${ipfsHash}`)
 

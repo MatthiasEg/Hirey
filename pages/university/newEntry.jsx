@@ -1,16 +1,16 @@
 /* eslint-disable max-len */
 import DateFnsUtils from '@date-io/date-fns'
-import Grid from '@material-ui/core/Grid'
 import Button from '@material-ui/core/Button'
 import Chip from '@material-ui/core/Chip'
-import CheckIcon from '@material-ui/icons/Check'
-import Typography from '@material-ui/core/Typography'
 import CircularProgress from '@material-ui/core/CircularProgress'
+import Grid from '@material-ui/core/Grid'
 import InputLabel from '@material-ui/core/InputLabel'
 import MenuItem from '@material-ui/core/MenuItem'
 import Select from '@material-ui/core/Select'
 import Snackbar from '@material-ui/core/Snackbar'
 import TextField from '@material-ui/core/TextField'
+import Typography from '@material-ui/core/Typography'
+import CheckIcon from '@material-ui/icons/Check'
 import MuiAlert from '@material-ui/lab/Alert'
 import {
   KeyboardDatePicker,
@@ -49,10 +49,8 @@ const NewEntry = () => {
 
   const captureFile = (event) => {
     event.preventDefault()
-    // const file = event.target.files
     const file = event.target.files[0]
     const reader = new window.FileReader()
-    // const reader = new FileReader()
     if (!file) return
     setFilename(file.name)
     reader.readAsArrayBuffer(file)
@@ -93,8 +91,9 @@ const NewEntry = () => {
       publishDate,
       document: documentBuffer,
     }
-    // console output
-    // console.log(educationData);
+
+    console.log('new university entry data')
+    console.log(educationData)
 
     const ipfsHash = await ipfs.upload(
       recipient.publicKey,

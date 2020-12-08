@@ -1,39 +1,35 @@
 /* eslint-disable no-param-reassign */
 /* eslint-disable no-await-in-loop */
 /* eslint-disable react/no-array-index-key */
-import Grid from '@material-ui/core/Grid'
-import React, { useEffect, useState } from 'react'
-import { makeStyles } from '@material-ui/core/styles'
-import List from '@material-ui/core/List'
-import ListItem from '@material-ui/core/ListItem'
-import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction'
-import ListItemText from '@material-ui/core/ListItemText'
-import Checkbox from '@material-ui/core/Checkbox'
-import TextField from '@material-ui/core/TextField'
-import Button from '@material-ui/core/Button'
-import InputAdornment from '@material-ui/core/InputAdornment'
-import CircularProgress from '@material-ui/core/CircularProgress'
-import AccountCircle from '@material-ui/icons/AccountCircle'
 import Box from '@material-ui/core/Box'
+import Button from '@material-ui/core/Button'
 import Card from '@material-ui/core/Card'
 import CardActions from '@material-ui/core/CardActions'
 import CardContent from '@material-ui/core/CardContent'
 import CardHeader from '@material-ui/core/CardHeader'
-import Typography from '@material-ui/core/Typography'
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
-import IconButton from '@material-ui/core/IconButton'
-import clsx from 'clsx'
+import Chip from '@material-ui/core/Chip'
+import CircularProgress from '@material-ui/core/CircularProgress'
 import Collapse from '@material-ui/core/Collapse'
 import Divider from '@material-ui/core/Divider'
+import Grid from '@material-ui/core/Grid'
+import IconButton from '@material-ui/core/IconButton'
+import InputAdornment from '@material-ui/core/InputAdornment'
+import List from '@material-ui/core/List'
+import ListItem from '@material-ui/core/ListItem'
+import ListItemText from '@material-ui/core/ListItemText'
+import Snackbar from '@material-ui/core/Snackbar'
+import { makeStyles } from '@material-ui/core/styles'
+import TextField from '@material-ui/core/TextField'
+import Typography from '@material-ui/core/Typography'
+import AccountCircle from '@material-ui/icons/AccountCircle'
+import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
+import MuiAlert from '@material-ui/lab/Alert'
+import clsx from 'clsx'
+import React, { useEffect, useState } from 'react'
 import { Document, Page, pdfjs } from 'react-pdf'
 import { useContract } from '../../context/ContractProvider'
-import { useUser } from '../../context/UserProvider'
-import Avatar from '@material-ui/core/Avatar'
-import Chip from '@material-ui/core/Chip'
-import { render } from 'react-dom'
 import { useIpfs } from '../../context/IpfsProvider'
-import Snackbar from '@material-ui/core/Snackbar';
-import MuiAlert from '@material-ui/lab/Alert';
+import { useUser } from '../../context/UserProvider'
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.js`
 
@@ -96,14 +92,12 @@ const Shared = () => {
   const classes = useStyles()
   // States
   const [cvDocuments, setCVDocuments] = useState([])
-  const [cvDocumentHashes, setCVDocumentHashes] = useState([])
   const [detailCVDocument, setDetailCVDocument] = useState(null)
-  const [detailCVDocumentHash, setDetailCVDocumentHash] = useState('')
   const [detailCVDocumentIndex, setDetailCVDocumentIndex] = useState(0)
   const [expanded, setExpanded] = useState([])
   const [targetAccount, setTargetAccount] = useState('')
   const [isLoading, setIsLoading] = useState(true)
-  const [open, setOpen] = React.useState(false);
+  const [open, setOpen] = React.useState(false)
   // Const
   const pageNumber = 1
 
@@ -145,6 +139,7 @@ const Shared = () => {
         newCVDocuments.push(result)
         newCVDocumentHashes.push(ipfsHash)
 
+        console.log('shared cvrecord download result')
         console.log(result)
 
         const nbrOfSharedToAddresses = await contract.methods
@@ -166,10 +161,8 @@ const Shared = () => {
         }
       }
       setCVDocuments(newCVDocuments)
-      setCVDocumentHashes(newCVDocumentHashes)
       if (newCVDocuments.length > 0) {
         setDetailCVDocument(newCVDocuments[0])
-        setDetailCVDocumentHash(newCVDocumentHashes[0])
         setDetailCVDocumentIndex(0)
       }
       setIsLoading(false)
@@ -180,27 +173,42 @@ const Shared = () => {
     // reset expanded documents
     setExpanded([])
     setDetailCVDocument(cvDocuments[cvDocumentIndex])
-    setDetailCVDocumentHash(cvDocumentHashes[cvDocumentIndex])
     setDetailCVDocumentIndex(cvDocumentIndex)
   }
 
-  const onShare = (event) => {
+  const onShare = async (event) => {
     event.preventDefault()
-    contract.methods
-      .shareCVDocument(
-        targetAccount,
-        detailCVDocumentIndex,
-        detailCVDocumentHash,
+
+    const recipient = allUsers.find((u) => u.address === targetAccount)
+    if (recipient) {
+      console.log(recipient)
+
+      var cvDocumentToUpload = Object.assign({}, detailCVDocument)
+      delete cvDocumentToUpload.sharedTo
+
+      console.log('new shared cv entry data')
+      console.log(cvDocumentToUpload)
+
+      const ipfsHash = await ipfs.upload(
+        recipient.publicKey,
+        user.privateKey,
+        cvDocumentToUpload,
       )
-      .send({
-        from: user.address,
-      })
-      .then(() => {
-        const newCvDocuments = [...cvDocuments]
-        newCvDocuments[detailCVDocumentIndex].sharedTo.push(targetAccount)
-        setCVDocuments(newCvDocuments)
-        setOpen(true);
-      })
+      console.log(`IPFS hash from upload: ${ipfsHash}`)
+
+      await contract.methods
+        .shareCVDocument(targetAccount, detailCVDocumentIndex, ipfsHash)
+        .send({
+          from: user.address,
+        })
+
+      const newCvDocuments = [...cvDocuments]
+      newCvDocuments[detailCVDocumentIndex].sharedTo.push(targetAccount)
+      setCVDocuments(newCvDocuments)
+      setOpen(true)
+    } else {
+      throw Error(`Recipient with address ${targetAccount} could not be found!`)
+    }
   }
 
   // open and close expand with documents
@@ -217,11 +225,11 @@ const Shared = () => {
 
   const handleClose = (event, reason) => {
     if (reason === 'clickaway') {
-      return;
+      return
     }
 
-    setOpen(false);
-  };
+    setOpen(false)
+  }
 
   useEffect(() => {
     ;(async () => {
@@ -287,7 +295,11 @@ const Shared = () => {
                                   return (
                                     <Chip
                                       size='small'
-                                      label={allUsers.find((u) => u.address === sharedToAdresse).name}
+                                      label={
+                                        allUsers.find(
+                                          (u) => u.address === sharedToAdresse,
+                                        ).name
+                                      }
                                       color='secondary'
                                       key={sharedToAdresseIndex}
                                     />
@@ -349,7 +361,7 @@ const Shared = () => {
                               </CardContent>
                               <Divider light />
                               <CardActions disableSpacing>
-                              <Typography paragraph>Dokument</Typography>
+                                <Typography paragraph>Dokument</Typography>
                                 <IconButton
                                   className={clsx(classes.expand, {
                                     [classes.expandOpen]: expanded.includes(
@@ -403,7 +415,12 @@ const Shared = () => {
         </Grid>
       )}
       <Snackbar open={open} autoHideDuration={6000} onClose={handleClose}>
-        <MuiAlert elevation={6} variant="filled" onClose={handleClose} severity="success">
+        <MuiAlert
+          elevation={6}
+          variant='filled'
+          onClose={handleClose}
+          severity='success'
+        >
           Lebenslauf erfolgreich geteilt!
         </MuiAlert>
       </Snackbar>

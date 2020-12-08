@@ -1,26 +1,27 @@
 /* eslint-disable no-param-reassign */
 /* eslint-disable no-await-in-loop */
 /* eslint-disable react/no-array-index-key */
-import Grid from '@material-ui/core/Grid'
-import React, { useEffect, useState } from 'react'
-import { makeStyles } from '@material-ui/core/styles'
-import List from '@material-ui/core/List'
-import ListItem from '@material-ui/core/ListItem'
-import ListItemText from '@material-ui/core/ListItemText'
-import CircularProgress from '@material-ui/core/CircularProgress'
 import Box from '@material-ui/core/Box'
 import Card from '@material-ui/core/Card'
 import CardActions from '@material-ui/core/CardActions'
 import CardContent from '@material-ui/core/CardContent'
 import CardHeader from '@material-ui/core/CardHeader'
-import Typography from '@material-ui/core/Typography'
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
-import IconButton from '@material-ui/core/IconButton'
-import clsx from 'clsx'
+import CircularProgress from '@material-ui/core/CircularProgress'
 import Collapse from '@material-ui/core/Collapse'
 import Divider from '@material-ui/core/Divider'
+import Grid from '@material-ui/core/Grid'
+import IconButton from '@material-ui/core/IconButton'
+import List from '@material-ui/core/List'
+import ListItem from '@material-ui/core/ListItem'
+import ListItemText from '@material-ui/core/ListItemText'
+import { makeStyles } from '@material-ui/core/styles'
+import Typography from '@material-ui/core/Typography'
+import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
+import clsx from 'clsx'
+import React, { useEffect, useState } from 'react'
 import { Document, Page, pdfjs } from 'react-pdf'
 import { useContract } from '../../context/ContractProvider'
+import { useIpfs } from '../../context/IpfsProvider'
 import { useUser } from '../../context/UserProvider'
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.js`
@@ -80,16 +81,15 @@ const Read = () => {
   // Providers
   const { user, allUsers } = useUser()
   const { contract } = useContract()
+  const ipfs = useIpfs()
   const classes = useStyles()
   // States
   const [cvDocuments, setCVDocuments] = useState([])
   const [cvDocumentHashes, setCVDocumentHashes] = useState([])
   const [detailCVDocument, setDetailCVDocument] = useState(null)
-  const [detailCVDocumentHash, setDetailCVDocumentHash] = useState('')
-  const [detailCVDocumentIndex, setDetailCVDocumentIndex] = useState(0)
   const [expanded, setExpanded] = useState([])
-  // const [targetAccount, setTargetAccount] = useState('')
-  // Const
+  const [isLoading, setIsLoading] = useState(true)
+
   const pageNumber = 1
 
   const loadCVDocument = async () => {
@@ -118,76 +118,78 @@ const Read = () => {
             from: user.address,
           })
         const sender = cvDocument[0]
+        const ipfsHash = cvDocument[1]
+
         if (isUnlocked) {
-          const hash = cvDocument[1]
-          await fetch(`https://ipfs.infura.io/ipfs/${hash}`)
-            .then((response) => response.json())
-            .then((jsonData) => {
-              jsonData.sender = sender
-              jsonData.unlocked = true
-              newCVDocuments.push(jsonData)
-              newCVDocumentHashes.push(hash)
-            })
-          console.log(`https://ipfs.infura.io/ipfs/${hash}`)
+          const downloadedDocument = await downloadCVDocument(sender, ipfsHash)
+          if (downloadedDocument) {
+            newCVDocuments.push(downloadedDocument)
+            newCVDocumentHashes.push(ipfsHash)
+          }
         } else {
           newCVDocuments.push({ unlocked: false, sender, records: [] })
           newCVDocumentHashes.push('')
         }
       }
+
       setCVDocuments(newCVDocuments)
       setCVDocumentHashes(newCVDocumentHashes)
-      if (newCVDocuments.length > 0) {
-        setDetailCVDocument(newCVDocuments[0])
-        setDetailCVDocumentHash(newCVDocumentHashes[0])
-        setDetailCVDocumentIndex(0)
-      }
+      setIsLoading(false)
     }
   }
 
+  const handleClickedUnlock = (cvDocumentIndex) => async () => {
+    await contract.methods.unlockCVDocument(cvDocumentIndex).send({
+      from: user.address,
+      value: 30000,
+    })
+
+    const newCVDocuments = [...cvDocuments]
+    const newCVDocumentHashes = [...cvDocumentHashes]
+    const cvDocument = await contract.methods
+      .getCvDocumentHash(cvDocumentIndex)
+      .call({
+        from: user.address,
+      })
+
+    const sender = cvDocument[0]
+    const ipfsHash = cvDocument[1]
+
+    const downloadedDocument = await downloadCVDocument(sender, ipfsHash)
+    if (downloadedDocument) {
+      newCVDocuments.push(downloadedDocument)
+      newCVDocumentHashes.push(ipfsHash)
+      setCVDocuments(newCVDocuments)
+      setCVDocumentHashes(newCVDocumentHashes)
+      setDetailCVDocument(newCVDocuments[cvDocumentIndex])
+    }
+  }
+
+  const downloadCVDocument = async (sender, ipfsHash) => {
+    const senderUser = allUsers.find((u) => u.address === sender)
+    if (senderUser) {
+      const result = await ipfs.download(
+        user.privateKey,
+        senderUser.publicKey,
+        ipfsHash,
+      )
+      if (!result.sender) {
+        result.sender = sender
+      }
+      result.unlocked = true
+
+      console.log('shared cv read download result')
+      console.log(result)
+
+      return result
+    }
+    return null
+  }
+
   const handleClickedCVDocument = (cvDocumentIndex) => () => {
-    console.log('asdf')
     // reset expanded documents
     setExpanded([])
     setDetailCVDocument(cvDocuments[cvDocumentIndex])
-    setDetailCVDocumentHash(cvDocumentHashes[cvDocumentIndex])
-    setDetailCVDocumentIndex(cvDocumentIndex)
-  }
-
-  const handleClickedUnlock = (cvDocumentIndex) => () => {
-    contract.methods
-      .unlockCVDocument(cvDocumentIndex)
-      .send({
-        from: user.address,
-        value: 30000,
-      })
-      .then(() => {
-        console.log(
-          `successfully unlock: https://ipfs.infura.io/ipfs/${detailCVDocumentHash}`,
-        )
-        const newCVDocuments = [...cvDocuments]
-        const newCVDocumentHashes = [...cvDocumentHashes]
-        contract.methods
-          .getCvDocumentHash(cvDocumentIndex)
-          .call({
-            from: user.address,
-          })
-          .then((cvDocument) => {
-            const sender = cvDocument[0]
-            const hash = cvDocument[1]
-            fetch(`https://ipfs.infura.io/ipfs/${hash}`)
-              .then((response) => response.json())
-              .then((jsonData) => {
-                jsonData.sender = sender
-                jsonData.unlocked = true
-                newCVDocuments[cvDocumentIndex] = jsonData
-                newCVDocumentHashes[cvDocumentIndex] = hash
-                setCVDocuments(newCVDocuments)
-                setCVDocumentHashes(newCVDocumentHashes)
-                setDetailCVDocument(newCVDocuments[cvDocumentIndex])
-                setDetailCVDocumentIndex(cvDocumentIndex)
-              })
-          })
-      })
   }
 
   // open and close expand with documents
@@ -210,126 +212,125 @@ const Read = () => {
 
   return (
     <Box component='div'>
-      {cvDocuments.length > 0 ? (
-        <>
-          <Grid container className={classes.grid} spacing={3}>
-            {/* LEFT SIDE */}
-            <Grid item xs={4}>
-              <List dense className={classes.list}>
-                {cvDocuments.map((cvDocument, cvDocumentIndex) => {
-                  return cvDocument.unlocked ? (
-                    <ListItem
-                      key={cvDocumentIndex}
-                      onClick={handleClickedCVDocument(cvDocumentIndex)}
-                      className={classes.listItem}
-                      button
-                    >
-                      <ListItemText
-                        primary={cvDocument.title}
-                        secondary={cvDocument.name}
-                      />
-                    </ListItem>
-                  ) : (
-                    <ListItem
-                      key={cvDocumentIndex}
-                      className={classes.listItem}
-                      onClick={handleClickedUnlock(cvDocumentIndex)}
-                      button
-                    >
-                      <ListItemText
-                        primary='Gesperrt'
-                        secondary={`${
-                          allUsers.find((u) => u.address === cvDocument.sender)
-                            .name
-                        }`}
-                      />
-                    </ListItem>
-                  )
-                })}
-              </List>
-            </Grid>
-
-            {/* RIGHT SIDE */}
-            <Grid item xs={8}>
-              {detailCVDocument != null &&
-              detailCVDocument.records != null &&
-              detailCVDocument.records.length > 0 ? (
-                <>
-                  {detailCVDocument.records.map((cvRecord, cvRecordIndex) => {
-                    return (
-                      <Card className={classes.detailCard} key={cvRecordIndex}>
-                        <CardHeader
-                          title={cvRecord.title}
-                          subheader={`von ${cvRecord.autor} | publiziert am: ${cvRecord.publishDate}`}
-                        />
-                        <CardContent>
-                          {cvRecord.type === 'Anstellung' && (
-                            <Typography variant='subtitle1' component='p'>
-                              Von: {cvRecord.from} Bis: {cvRecord.to}
-                            </Typography>
-                          )}
-                          <Typography variant='body2' component='p'>
-                            {cvRecord.description}
-                          </Typography>
-                        </CardContent>
-                        <Divider light />
-                        <CardActions disableSpacing>
-                          {cvRecord.documents.length > 0 && (
-                            <IconButton
-                              className={clsx(classes.expand, {
-                                [classes.expandOpen]: expanded.includes(
-                                  cvRecordIndex,
-                                ),
-                              })}
-                              onClick={handleExpandClick(cvRecordIndex)}
-                              aria-expanded={expanded.includes(cvRecordIndex)}
-                              aria-label='Dokumente anzeigen'
-                            >
-                              <ExpandMoreIcon />
-                            </IconButton>
-                          )}
-                        </CardActions>
-                        <Collapse
-                          in={expanded.includes(cvRecordIndex)}
-                          timeout='auto'
-                          unmountOnExit
+      {!isLoading ? (
+        <Box component='div'>
+          {cvDocuments.length > 0 ? (
+            <>
+              <Grid container className={classes.grid} spacing={3}>
+                {/* LEFT SIDE */}
+                <Grid item xs={4}>
+                  <List dense className={classes.list}>
+                    {cvDocuments.map((cvDocument, cvDocumentIndex) => {
+                      return cvDocument.unlocked ? (
+                        <ListItem
+                          key={cvDocumentIndex}
+                          onClick={handleClickedCVDocument(cvDocumentIndex)}
+                          className={classes.listItem}
+                          button
                         >
-                          <CardContent>
-                            <Typography paragraph>Dokumente</Typography>
-                            {cvRecord.documents.map(
-                              (documentHash, documentIndex) => {
-                                return (
-                                  <Box component='div' key={documentIndex}>
-                                    <p>
-                                      Dokument Link:
-                                      https://ipfs.infura.io/ipfs/
-                                      {documentHash}
-                                    </p>
-                                    <Document
-                                      file={`https://ipfs.infura.io/ipfs/${documentHash}`}
-                                    >
+                          <ListItemText
+                            primary={cvDocument.title}
+                            secondary={cvDocument.name}
+                          />
+                        </ListItem>
+                      ) : (
+                        <ListItem
+                          key={cvDocumentIndex}
+                          className={classes.listItem}
+                          onClick={handleClickedUnlock(cvDocumentIndex)}
+                          button
+                        >
+                          <ListItemText
+                            primary='Gesperrt'
+                            secondary={`${
+                              allUsers.find(
+                                (u) => u.address === cvDocument.sender,
+                              ).name
+                            }`}
+                          />
+                        </ListItem>
+                      )
+                    })}
+                  </List>
+                </Grid>
+
+                {/* RIGHT SIDE */}
+                <Grid item xs={8}>
+                  {detailCVDocument != null &&
+                  detailCVDocument.records != null &&
+                  detailCVDocument.records.length > 0 ? (
+                    <>
+                      {detailCVDocument.records.map(
+                        (cvRecord, cvRecordIndex) => {
+                          return (
+                            <Card
+                              className={classes.detailCard}
+                              key={cvRecordIndex}
+                            >
+                              <CardHeader
+                                title={cvRecord.title}
+                                subheader={`von ${cvRecord.autor} | publiziert am: ${cvRecord.publishDate}`}
+                              />
+                              <CardContent>
+                                {cvRecord.type === 'Anstellung' && (
+                                  <Typography variant='subtitle1' component='p'>
+                                    Von: {cvRecord.from} Bis: {cvRecord.to}
+                                  </Typography>
+                                )}
+                                <Typography variant='body2' component='p'>
+                                  {cvRecord.description}
+                                </Typography>
+                              </CardContent>
+                              <Divider light />
+                              <CardActions disableSpacing>
+                                <IconButton
+                                  className={clsx(classes.expand, {
+                                    [classes.expandOpen]: expanded.includes(
+                                      cvRecordIndex,
+                                    ),
+                                  })}
+                                  onClick={handleExpandClick(cvRecordIndex)}
+                                  aria-expanded={expanded.includes(
+                                    cvRecordIndex,
+                                  )}
+                                  aria-label='Dokumente anzeigen'
+                                >
+                                  <ExpandMoreIcon />
+                                </IconButton>
+                              </CardActions>
+                              <Collapse
+                                in={expanded.includes(cvRecordIndex)}
+                                timeout='auto'
+                                unmountOnExit
+                              >
+                                <CardContent>
+                                  <Typography paragraph>Dokument</Typography>
+                                  <Box component='div'>
+                                    <Document file={cvRecord.document}>
                                       <Page pageNumber={pageNumber} />
                                     </Document>
                                   </Box>
-                                )
-                              },
-                            )}
-                          </CardContent>
-                        </Collapse>
-                      </Card>
-                    )
-                  })}
+                                </CardContent>
+                              </Collapse>
+                            </Card>
+                          )
+                        },
+                      )}
 
-                  {/* Fallback Detail */}
-                </>
-              ) : (
-                <>Kein Lebenslauf selektiert!</>
-              )}
-            </Grid>
-          </Grid>
+                      {/* Fallback Detail */}
+                    </>
+                  ) : (
+                    <>Kein Lebenslauf selektiert!</>
+                  )}
+                </Grid>
+              </Grid>
 
-          {/* Fallback Page */}
-        </>
+              {/* Fallback Page */}
+            </>
+          ) : (
+            <>Keine Lebenslaufeinträge vorhanden.</>
+          )}
+        </Box>
       ) : (
         <Grid container className={classes.grid} spacing={3} justify='center'>
           <CircularProgress color='primary' variant='indeterminate' size={70} />
