@@ -6,13 +6,7 @@ import React, { useEffect, useState } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 import List from '@material-ui/core/List'
 import ListItem from '@material-ui/core/ListItem'
-import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction'
 import ListItemText from '@material-ui/core/ListItemText'
-import Checkbox from '@material-ui/core/Checkbox'
-import TextField from '@material-ui/core/TextField'
-import Button from '@material-ui/core/Button'
-import InputAdornment from '@material-ui/core/InputAdornment'
-import AccountCircle from '@material-ui/icons/AccountCircle'
 import CircularProgress from '@material-ui/core/CircularProgress'
 import Box from '@material-ui/core/Box'
 import Card from '@material-ui/core/Card'
@@ -28,10 +22,6 @@ import Divider from '@material-ui/core/Divider'
 import { Document, Page, pdfjs } from 'react-pdf'
 import { useContract } from '../../context/ContractProvider'
 import { useUser } from '../../context/UserProvider'
-import Avatar from '@material-ui/core/Avatar'
-import Chip from '@material-ui/core/Chip'
-import ipfs from '../../lib/IPFSClient'
-import { render } from 'react-dom'
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.js`
 
@@ -98,7 +88,7 @@ const Read = () => {
   const [detailCVDocumentHash, setDetailCVDocumentHash] = useState('')
   const [detailCVDocumentIndex, setDetailCVDocumentIndex] = useState(0)
   const [expanded, setExpanded] = useState([])
-  const [targetAccount, setTargetAccount] = useState('')
+  // const [targetAccount, setTargetAccount] = useState('')
   // Const
   const pageNumber = 1
 
@@ -140,7 +130,7 @@ const Read = () => {
             })
           console.log(`https://ipfs.infura.io/ipfs/${hash}`)
         } else {
-          newCVDocuments.push({ unlocked: false, sender: sender, records: [] })
+          newCVDocuments.push({ unlocked: false, sender, records: [] })
           newCVDocumentHashes.push('')
         }
       }
@@ -248,7 +238,10 @@ const Read = () => {
                     >
                       <ListItemText
                         primary='Gesperrt'
-                        secondary={`${allUsers.find((u) => u.address === cvDocument.sender).name}`}
+                        secondary={`${
+                          allUsers.find((u) => u.address === cvDocument.sender)
+                            .name
+                        }`}
                       />
                     </ListItem>
                   )
@@ -327,7 +320,7 @@ const Read = () => {
                     )
                   })}
 
-                  {/* Fallback Detail*/}
+                  {/* Fallback Detail */}
                 </>
               ) : (
                 <>Kein Lebenslauf selektiert!</>
@@ -335,7 +328,7 @@ const Read = () => {
             </Grid>
           </Grid>
 
-          {/* Fallback Page*/}
+          {/* Fallback Page */}
         </>
       ) : (
         <Grid container className={classes.grid} spacing={3} justify='center'>
