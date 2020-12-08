@@ -30,6 +30,9 @@ import { Document, Page, pdfjs } from 'react-pdf'
 import { useContract } from '../../context/ContractProvider'
 import { useIpfs } from '../../context/IpfsProvider'
 import { useUser } from '../../context/UserProvider'
+import InputLabel from '@material-ui/core/InputLabel'
+import Select from '@material-ui/core/Select'
+import MenuItem from '@material-ui/core/MenuItem'
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.js`
 
@@ -231,6 +234,10 @@ const Shared = () => {
     setOpen(false)
   }
 
+  const handleTargetAccountChange = (event) => {
+    setTargetAccount(event.target.value)
+  }
+
   useEffect(() => {
     ;(async () => {
       await loadCVDocument()
@@ -308,33 +315,45 @@ const Shared = () => {
                               )}
                             </Box>
                           </Box>
-
-                          <Box component='div'>
-                            <form onSubmit={onShare}>
-                              <TextField
-                                onChange={(event) =>
-                                  setTargetAccount(event.target.value)
-                                }
-                                className={classes.targetAccountTextField}
-                                label='Teile mit (AccountId)'
-                                required
-                                InputProps={{
-                                  startAdornment: (
-                                    <InputAdornment position='start'>
-                                      <AccountCircle />
-                                    </InputAdornment>
-                                  ),
-                                }}
-                              />
-                              <Button
-                                type='submit'
-                                variant='contained'
-                                color='secondary'
-                              >
-                                Share
-                              </Button>
-                            </form>
-                          </Box>
+                          <form onSubmit={onShare}>
+                            <Grid
+                              container
+                              justify='between'
+                              alignItems='center'
+                              alignContent='center'
+                              spacing={3}
+                            >
+                              <Grid item xs={8} md={8}>
+                                <InputLabel>Freigeben an</InputLabel>
+                                <Select
+                                  required
+                                  fullWidth
+                                  value={targetAccount || ''}
+                                  onChange={handleTargetAccountChange}
+                                >
+                                  {allUsers
+                                    .filter((u) => u.type === 'employer')
+                                    .map((userObject) => (
+                                      <MenuItem
+                                        key={userObject.address}
+                                        value={userObject.address}
+                                      >
+                                        {userObject.name}
+                                      </MenuItem>
+                                    ))}
+                                </Select>
+                              </Grid>
+                              <Grid item xs={4} md={4}>
+                                <Button
+                                  type='submit'
+                                  variant='contained'
+                                  color='secondary'
+                                >
+                                  Freigeben
+                                </Button>
+                              </Grid>
+                            </Grid>
+                          </form>
                         </CardContent>
                       </Card>
 
