@@ -124,7 +124,7 @@ const NewEntry = () => {
         spacing={6}
       >
         <Grid item xs={12}>
-          <Typography variant='h4'>Arbeitszeugniss ausstellen</Typography>
+          <Typography variant='h4'>Arbeitsverhältnis eintragen</Typography>
         </Grid>
         <Grid item>
           <Grid
