@@ -256,7 +256,7 @@ const CV = () => {
                 {/* RIGHT SIDE */}
                 <Grid item xs={12} md={6}>
                   {detailCVRecord != null && (
-                    <Card>
+                    <Card style={{ minWidth: 650 }}>
                       <CardHeader
                         title={detailCVRecord.title}
                         subheader={`von ${detailCVRecord.autor} | publiziert am: ${detailCVRecord.publishDate}`}
