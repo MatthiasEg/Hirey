@@ -157,8 +157,8 @@ const Read = () => {
 
     const downloadedDocument = await downloadCVDocument(sender, ipfsHash)
     if (downloadedDocument) {
-      newCVDocuments.push(downloadedDocument)
-      newCVDocumentHashes.push(ipfsHash)
+      newCVDocuments[cvDocumentIndex] = downloadedDocument
+      newCVDocumentHashes[cvDocumentIndex] = ipfsHash
       setCVDocuments(newCVDocuments)
       setCVDocumentHashes(newCVDocumentHashes)
       setDetailCVDocument(newCVDocuments[cvDocumentIndex])
